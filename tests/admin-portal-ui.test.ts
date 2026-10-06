@@ -30,4 +30,11 @@ describe('Admin Portal Structure', () => {
     expect(content).toContain('brandCount');
     expect(content).toContain('couponCount');
   });
+
+  it('isolates admin routes from storefront Header and Footer', () => {
+    const layoutPath = path.resolve(__dirname, '../src/components/layout/StorefrontLayout.tsx');
+    expect(fs.existsSync(layoutPath)).toBe(true);
+    const content = fs.readFileSync(layoutPath, 'utf-8');
+    expect(content).toContain('/admin');
+  });
 });

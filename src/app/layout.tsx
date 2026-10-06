@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
-import PromoBar from '@/components/layout/PromoBar';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import CartDrawer from '@/components/cart/CartDrawer';
+import StorefrontLayout from '@/components/layout/StorefrontLayout';
 
 export const metadata: Metadata = {
   title: 'GlowSeoul - Mỹ Phẩm K-Beauty Hàn Quốc Chính Hãng',
@@ -21,11 +18,7 @@ export default function RootLayout({
     <html lang="vi">
       <body>
         <CartProvider>
-          <PromoBar />
-          <Header />
-          <CartDrawer />
-          <main style={{ minHeight: 'calc(100vh - 350px)' }}>{children}</main>
-          <Footer />
+          <StorefrontLayout>{children}</StorefrontLayout>
         </CartProvider>
       </body>
     </html>
