@@ -42,7 +42,7 @@ const PRICE_RANGES = [
   { label: 'Trên 400.000₫', min: '400000', max: '' },
 ];
 
-export default function FilterSidebar() {
+export default function FilterSidebar({ isMobileDrawer = false }: { isMobileDrawer?: boolean }) {
   const { isPending, filters, setFilter, setPriceRange, resetFilters } = useCatalogFilter();
 
   const currentCategory = filters.category;
@@ -53,65 +53,72 @@ export default function FilterSidebar() {
 
   return (
     <aside
-      style={{
-        background: 'white',
-        borderRadius: 'var(--radius-lg)',
-        padding: '24px 20px',
-        border: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-sm)',
-        position: 'sticky',
-        top: '90px',
-        maxHeight: 'calc(100vh - 110px)',
-        overflowY: 'auto',
-      }}
+      className={isMobileDrawer ? '' : 'hide-on-mobile'}
+      style={
+        isMobileDrawer
+          ? { background: 'transparent', width: '100%' }
+          : {
+              background: 'white',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px 20px',
+              border: '1px solid var(--color-border)',
+              boxShadow: 'var(--shadow-sm)',
+              position: 'sticky',
+              top: '90px',
+              maxHeight: 'calc(100vh - 110px)',
+              overflowY: 'auto',
+            }
+      }
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingBottom: '16px',
-          borderBottom: '1px solid var(--color-border)',
-          marginBottom: '20px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '800' }}>
-          <Filter size={18} color="var(--color-primary)" />
-          <span>Bộ Lọc</span>
-          {isPending && (
-            <Loader2
-              size={14}
-              style={{
-                animation: 'spin 0.8s linear infinite',
-                color: 'var(--color-primary)',
-                marginLeft: '4px',
-              }}
-            />
-          )}
-        </div>
-        <button
-          onClick={resetFilters}
-          type="button"
+      {!isMobileDrawer && (
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            fontSize: '12px',
-            color: 'var(--color-text-muted)',
-            fontWeight: '600',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: 'var(--radius-sm)',
-            transition: 'color 0.15s ease',
+            justifyContent: 'space-between',
+            paddingBottom: '16px',
+            borderBottom: '1px solid var(--color-border)',
+            marginBottom: '20px',
           }}
-          title="Đặt lại tất cả bộ lọc"
         >
-          <RotateCcw size={12} />
-          <span>Đặt lại</span>
-        </button>
-      </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '800' }}>
+            <Filter size={18} color="var(--color-primary)" />
+            <span>Bộ Lọc</span>
+            {isPending && (
+              <Loader2
+                size={14}
+                style={{
+                  animation: 'spin 0.8s linear infinite',
+                  color: 'var(--color-primary)',
+                  marginLeft: '4px',
+                }}
+              />
+            )}
+          </div>
+          <button
+            onClick={resetFilters}
+            type="button"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '12px',
+              color: 'var(--color-text-muted)',
+              fontWeight: '600',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'color 0.15s ease',
+            }}
+            title="Đặt lại tất cả bộ lọc"
+          >
+            <RotateCcw size={12} />
+            <span>Đặt lại</span>
+          </button>
+        </div>
+      )}
 
       {/* Category Filter */}
       <div style={{ marginBottom: '24px' }}>

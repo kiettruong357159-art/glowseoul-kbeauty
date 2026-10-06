@@ -50,6 +50,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
           {/* Main Grid: Sidebar + Products */}
           <div
+            className="responsive-grid-1"
             style={{
               display: 'grid',
               gridTemplateColumns: '260px 1fr',
