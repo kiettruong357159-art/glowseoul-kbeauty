@@ -5,6 +5,9 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStatsCards from '@/components/admin/AdminStatsCards';
 import ProductListTable from '@/components/admin/ProductListTable';
 import ProductFormModal from '@/components/admin/ProductFormModal';
+import TaxonomiesManager from '@/components/admin/TaxonomiesManager';
+import CouponManager from '@/components/admin/CouponManager';
+import BannerManager from '@/components/admin/BannerManager';
 import { Package, Layers, Ticket, Megaphone } from 'lucide-react';
 
 export default function AdminPage() {
@@ -19,6 +22,7 @@ export default function AdminPage() {
   // Master data for filters & forms
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
 
   // Products Tab State
   const [products, setProducts] = useState<any[]>([]);
@@ -47,6 +51,7 @@ export default function AdminPage() {
 
       setCategories(catData.categories || []);
       setBrands(brandData.brands || []);
+      setCoupons(couponData.coupons || []);
 
       setCounts((prev) => ({
         ...prev,
@@ -239,22 +244,26 @@ export default function AdminPage() {
 
           {activeTab === 'taxonomies' && (
             <div id="tab-taxonomies">
-              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Danh mục & Thương hiệu</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Cấu hình danh mục và nhãn hàng chuẩn Hàn...</p>
+              <TaxonomiesManager
+                categories={categories}
+                brands={brands}
+                onRefresh={refreshCountsAndTaxonomies}
+              />
             </div>
           )}
 
           {activeTab === 'coupons' && (
             <div id="tab-coupons">
-              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Mã giảm giá (Coupons)</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Cấu hình voucher khuyến mại thanh toán...</p>
+              <CouponManager
+                coupons={coupons}
+                onRefresh={refreshCountsAndTaxonomies}
+              />
             </div>
           )}
 
           {activeTab === 'banners' && (
             <div id="tab-banners">
-              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Banners & Khuyến mãi</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Chỉnh sửa thông điệp PromoBar và HeroBanner...</p>
+              <BannerManager />
             </div>
           )}
         </div>
