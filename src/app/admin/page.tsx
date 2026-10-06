@@ -1,0 +1,174 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import AdminHeader from '@/components/admin/AdminHeader';
+import AdminStatsCards from '@/components/admin/AdminStatsCards';
+import { Package, Layers, Ticket, Megaphone, Loader2 } from 'lucide-react';
+
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<'products' | 'taxonomies' | 'coupons' | 'banners'>('products');
+  const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState({
+    products: 0,
+    categories: 0,
+    brands: 0,
+    coupons: 0,
+  });
+
+  const refreshCounts = async () => {
+    try {
+      const [prodRes, catRes, brandRes, couponRes] = await Promise.all([
+        fetch('/api/admin/products'),
+        fetch('/api/admin/categories'),
+        fetch('/api/admin/brands'),
+        fetch('/api/admin/coupons'),
+      ]);
+
+      const [prodData, catData, brandData, couponData] = await Promise.all([
+        prodRes.json(),
+        catRes.json(),
+        brandRes.json(),
+        couponRes.json(),
+      ]);
+
+      setCounts({
+        products: prodData.total ?? (prodData.products?.length || 0),
+        categories: catData.categories?.length || 0,
+        brands: brandData.brands?.length || 0,
+        coupons: couponData.coupons?.length || 0,
+      });
+    } catch (err) {
+      console.error('Failed to load admin stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshCounts();
+  }, []);
+
+  const tabs = [
+    { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
+    { id: 'taxonomies' as const, label: 'Danh mục & Thương hiệu', icon: Layers, count: counts.categories + counts.brands },
+    { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
+    { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
+  ];
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', paddingBottom: '80px' }}>
+      <AdminHeader />
+
+      <main className="container" style={{ padding: '32px 20px' }}>
+        {/* Page Title & Intro */}
+        <div style={{ marginBottom: '28px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--color-text-main)', letterSpacing: '-0.5px' }}>
+            Hệ Thống Quản Lý Dữ Liệu Gốc (Master Data)
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            Quản trị danh mục mỹ phẩm Hàn Quốc, voucher ưu đãi và cấu hình thông điệp khuyến mại tức thì.
+          </p>
+        </div>
+
+        {/* Global Stats Overview */}
+        <AdminStatsCards
+          productCount={counts.products}
+          categoryCount={counts.categories}
+          brandCount={counts.brands}
+          couponCount={counts.coupons}
+        />
+
+        {/* Navigation Tabs Bar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'white',
+            padding: '6px',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            marginBottom: '24px',
+            overflowX: 'auto',
+          }}
+        >
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: isActive ? 'var(--color-primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--color-text-muted)',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Icon size={18} />
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      padding: '2px 7px',
+                      borderRadius: 'var(--radius-full)',
+                      background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'var(--color-bg)',
+                      color: isActive ? 'white' : 'var(--color-text-muted)',
+                      fontWeight: '800',
+                    }}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab Content Panels */}
+        <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
+          {activeTab === 'products' && (
+            <div id="tab-products">
+              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Quản lý Sản phẩm</h2>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Bảng dữ liệu sản phẩm đang được tải...</p>
+            </div>
+          )}
+
+          {activeTab === 'taxonomies' && (
+            <div id="tab-taxonomies">
+              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Danh mục & Thương hiệu</h2>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Cấu hình danh mục và nhãn hàng chuẩn Hàn...</p>
+            </div>
+          )}
+
+          {activeTab === 'coupons' && (
+            <div id="tab-coupons">
+              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Mã giảm giá (Coupons)</h2>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Cấu hình voucher khuyến mại thanh toán...</p>
+            </div>
+          )}
+
+          {activeTab === 'banners' && (
+            <div id="tab-banners">
+              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Banners & Khuyến mãi</h2>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Chỉnh sửa thông điệp PromoBar và HeroBanner...</p>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
