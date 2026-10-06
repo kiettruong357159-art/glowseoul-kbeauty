@@ -130,6 +130,7 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmitOrder}>
           <div
+            className="responsive-grid-1"
             style={{
               display: 'grid',
               gridTemplateColumns: '1.2fr 0.8fr',

@@ -15,6 +15,7 @@ export default function Footer() {
       <div className="container">
         {/* Value Propositions */}
         <div
+          className="responsive-grid-2"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -107,8 +108,8 @@ export default function Footer() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr 1fr',
-            gap: '40px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '32px',
             marginBottom: '40px',
           }}
         >

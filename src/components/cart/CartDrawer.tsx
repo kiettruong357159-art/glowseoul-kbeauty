@@ -51,8 +51,8 @@ export default function CartDrawer() {
       <div
         style={{
           position: 'relative',
-          width: '100%',
-          maxWidth: '420px',
+          width: 'min(420px, 100vw)',
+          maxWidth: '100vw',
           height: '100%',
           background: 'white',
           boxShadow: 'var(--shadow-lg)',
