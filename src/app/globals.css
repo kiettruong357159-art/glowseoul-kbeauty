@@ -212,3 +212,37 @@ img {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
+
+/* ==========================================================================
+   Responsive Utilities & Media Queries
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .show-on-mobile {
+    display: block !important;
+  }
+  .show-on-mobile-flex {
+    display: flex !important;
+  }
+  .container {
+    padding: 0 16px !important;
+  }
+  .responsive-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .responsive-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .show-on-mobile,
+  .show-on-mobile-flex {
+    display: none !important;
+  }
+}
+
