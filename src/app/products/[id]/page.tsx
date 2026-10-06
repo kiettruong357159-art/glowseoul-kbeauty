@@ -90,6 +90,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
         {/* Main Product Showcase Grid */}
         <div
+          className="responsive-grid-1"
           style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(320px, 1fr) 1.2fr',
@@ -215,6 +216,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
 
             <div
+              className="responsive-grid-2"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
