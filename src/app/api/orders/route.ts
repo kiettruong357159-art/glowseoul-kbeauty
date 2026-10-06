@@ -34,8 +34,17 @@ export async function POST(request: Request) {
 
     // Apply voucher discount if valid
     let discount = 0;
-    if (couponCode && couponCode.toUpperCase().trim() === 'KBEAUTY10') {
-      discount = Math.round(subtotal * 0.1);
+    if (couponCode) {
+      const cleanCoupon = couponCode.toUpperCase().trim();
+      const dbCoupon = await prisma.coupon.findUnique({ where: { code: cleanCoupon } });
+      if (dbCoupon && dbCoupon.isActive && subtotal >= dbCoupon.minOrderAmount) {
+        discount = Math.round(subtotal * (dbCoupon.discountPercent / 100));
+        if (dbCoupon.maxDiscount && discount > dbCoupon.maxDiscount) {
+          discount = dbCoupon.maxDiscount;
+        }
+      } else if (cleanCoupon === 'KBEAUTY10') {
+        discount = Math.round(subtotal * 0.1);
+      }
     }
 
     // Calculate shipping

@@ -24,7 +24,10 @@ export default function CheckoutPage() {
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [appliedDiscountPercent, setAppliedDiscountPercent] = useState<number>(0);
+  const [appliedDiscountAmount, setAppliedDiscountAmount] = useState<number>(0);
   const [couponError, setCouponError] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,18 +36,35 @@ export default function CheckoutPage() {
   const [showQRModal, setShowQRModal] = useState(false);
 
   // Calculations
-  const discountAmount = appliedCoupon === 'KBEAUTY10' ? Math.round(subtotal * 0.1) : 0;
+  const discountAmount = appliedCoupon ? appliedDiscountAmount : 0;
   const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : STANDARD_SHIPPING_FEE;
   const finalTotal = Math.max(0, subtotal - discountAmount + shippingFee);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError('');
-    if (couponInput.toUpperCase().trim() === 'KBEAUTY10') {
-      setAppliedCoupon('KBEAUTY10');
-      setCouponInput('');
-    } else {
-      setCouponError('Mã giảm giá không hợp lệ. Thử: KBEAUTY10');
+    if (!couponInput.trim()) return;
+
+    setIsValidatingCoupon(true);
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim(), subtotal }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon(data.code);
+        setAppliedDiscountPercent(data.discountPercent || 10);
+        setAppliedDiscountAmount(data.discountAmount || 0);
+        setCouponInput('');
+      } else {
+        setCouponError(data.message || 'Mã giảm giá không hợp lệ. Thử: KBEAUTY10');
+      }
+    } catch {
+      setCouponError('Không thể kiểm tra mã giảm giá, vui lòng thử lại');
+    } finally {
+      setIsValidatingCoupon(false);
     }
   };
 
@@ -407,12 +427,16 @@ export default function CheckoutPage() {
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Tag size={16} /> Đã áp dụng mã: {appliedCoupon} (-10%)
+                      <Tag size={16} /> Đã áp dụng mã: {appliedCoupon} (-{appliedDiscountPercent}%)
                     </span>
                     <button
                       type="button"
-                      onClick={() => setAppliedCoupon(null)}
-                      style={{ color: '#ef4444', fontSize: '12px', fontWeight: '700' }}
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setAppliedDiscountPercent(0);
+                        setAppliedDiscountAmount(0);
+                      }}
+                      style={{ color: '#ef4444', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
                     >
                       Gỡ
                     </button>
@@ -424,7 +448,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        placeholder="Nhập mã KBEAUTY10"
+                        placeholder="Nhập mã voucher (vd: KBEAUTY10, GLOW20)"
                         style={{
                           flex: 1,
                           padding: '10px 14px',
@@ -437,10 +461,11 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon}
                         className="btn-outline"
                         style={{ padding: '8px 16px', fontSize: '13px' }}
                       >
-                        Áp dụng
+                        {isValidatingCoupon ? 'Đang kiểm tra...' : 'Áp dụng'}
                       </button>
                     </div>
                     {couponError && (
@@ -461,7 +486,7 @@ export default function CheckoutPage() {
 
                 {discountAmount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontWeight: '600' }}>
-                    <span>Giảm giá voucher (10%):</span>
+                    <span>Giảm giá voucher ({appliedDiscountPercent}%):</span>
                     <span>-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
