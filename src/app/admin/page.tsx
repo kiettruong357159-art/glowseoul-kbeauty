@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStatsCards from '@/components/admin/AdminStatsCards';
-import { Package, Layers, Ticket, Megaphone, Loader2 } from 'lucide-react';
+import ProductListTable from '@/components/admin/ProductListTable';
+import ProductFormModal from '@/components/admin/ProductFormModal';
+import { Package, Layers, Ticket, Megaphone } from 'lucide-react';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'taxonomies' | 'coupons' | 'banners'>('products');
-  const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({
     products: 0,
     categories: 0,
@@ -15,38 +16,110 @@ export default function AdminPage() {
     coupons: 0,
   });
 
-  const refreshCounts = async () => {
+  // Master data for filters & forms
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
+
+  // Products Tab State
+  const [products, setProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productSearch, setProductSearch] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [productBrand, setProductBrand] = useState('');
+
+  // Product Modal State
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+
+  const refreshCountsAndTaxonomies = useCallback(async () => {
     try {
-      const [prodRes, catRes, brandRes, couponRes] = await Promise.all([
-        fetch('/api/admin/products'),
+      const [catRes, brandRes, couponRes] = await Promise.all([
         fetch('/api/admin/categories'),
         fetch('/api/admin/brands'),
         fetch('/api/admin/coupons'),
       ]);
 
-      const [prodData, catData, brandData, couponData] = await Promise.all([
-        prodRes.json(),
+      const [catData, brandData, couponData] = await Promise.all([
         catRes.json(),
         brandRes.json(),
         couponRes.json(),
       ]);
 
-      setCounts({
-        products: prodData.total ?? (prodData.products?.length || 0),
+      setCategories(catData.categories || []);
+      setBrands(brandData.brands || []);
+
+      setCounts((prev) => ({
+        ...prev,
         categories: catData.categories?.length || 0,
         brands: brandData.brands?.length || 0,
         coupons: couponData.coupons?.length || 0,
-      });
+      }));
     } catch (err) {
-      console.error('Failed to load admin stats:', err);
-    } finally {
-      setLoading(false);
+      console.error('Failed to load taxonomies:', err);
     }
-  };
+  }, []);
+
+  const loadProducts = useCallback(async () => {
+    setProductsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (productSearch.trim()) params.set('q', productSearch.trim());
+      if (productCategory) params.set('category', productCategory);
+      if (productBrand) params.set('brand', productBrand);
+
+      const res = await fetch(`/api/admin/products?${params.toString()}`);
+      const data = await res.json();
+      setProducts(data.products || []);
+      setCounts((prev) => ({ ...prev, products: data.total ?? (data.products?.length || 0) }));
+    } catch (err) {
+      console.error('Failed to load products:', err);
+    } finally {
+      setProductsLoading(false);
+    }
+  }, [productSearch, productCategory, productBrand]);
 
   useEffect(() => {
-    refreshCounts();
-  }, []);
+    refreshCountsAndTaxonomies();
+  }, [refreshCountsAndTaxonomies]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  const handleSaveProduct = async (productData: any) => {
+    const isEdit = Boolean(productData.id);
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch('/api/admin/products', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Lỗi khi lưu sản phẩm');
+    }
+
+    await loadProducts();
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/products?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await loadProducts();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Không thể xoá sản phẩm');
+      }
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Lỗi kết nối khi xoá sản phẩm');
+    }
+  };
 
   const tabs = [
     { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
@@ -141,10 +214,27 @@ export default function AdminPage() {
         {/* Tab Content Panels */}
         <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
           {activeTab === 'products' && (
-            <div id="tab-products">
-              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Quản lý Sản phẩm</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Bảng dữ liệu sản phẩm đang được tải...</p>
-            </div>
+            <ProductListTable
+              products={products}
+              categories={categories}
+              brands={brands}
+              search={productSearch}
+              onSearchChange={setProductSearch}
+              selectedCategory={productCategory}
+              onCategoryChange={setProductCategory}
+              selectedBrand={productBrand}
+              onBrandChange={setProductBrand}
+              onAddNew={() => {
+                setEditingProduct(null);
+                setIsProductModalOpen(true);
+              }}
+              onEdit={(p) => {
+                setEditingProduct(p);
+                setIsProductModalOpen(true);
+              }}
+              onDelete={handleDeleteProduct}
+              loading={productsLoading}
+            />
           )}
 
           {activeTab === 'taxonomies' && (
@@ -169,6 +259,16 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+
+      {/* Product Form Modal */}
+      <ProductFormModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSubmit={handleSaveProduct}
+        initialData={editingProduct}
+        categories={categories}
+        brands={brands}
+      />
     </div>
   );
 }
