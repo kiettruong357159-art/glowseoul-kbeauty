@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/context/CartContext';
+import { FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/constants';
 
 export async function POST(request: Request) {
   try {

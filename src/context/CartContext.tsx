@@ -1,6 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/constants';
+
+export { FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE };
 
 export interface CartProduct {
   id: string;
@@ -14,9 +17,6 @@ export interface CartProduct {
 export interface CartItemType extends CartProduct {
   quantity: number;
 }
-
-export const FREE_SHIPPING_THRESHOLD = 399000;
-export const STANDARD_SHIPPING_FEE = 30000;
 
 export function calculateCartTotals(items: { price: number; quantity: number }[]) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
