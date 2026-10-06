@@ -56,3 +56,46 @@ model OrderItem {
   quantity    Int
   image       String
 }
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+}
+
+model Brand {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  tag         String?
+  origin      String?   @default("Hàn Quốc")
+  logo        String?
+  createdAt   DateTime  @default(now())
+}
+
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountPercent Int
+  minOrderAmount  Int       @default(0)
+  maxDiscount     Int?
+  isActive        Boolean   @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+model Banner {
+  id          String    @id @default(cuid())
+  type        String    // "hero" | "promo_bar"
+  title       String
+  subtitle    String?
+  badgeText   String?
+  linkUrl     String?
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

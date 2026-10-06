@@ -236,20 +236,88 @@ const sampleProducts = [
   },
 ];
 
+const sampleCategories = [
+  { name: 'Serum & Tinh Chất', slug: 'serum', description: 'Tinh chất dưỡng sâu phục hồi da chuyên biệt chuẩn Hàn' },
+  { name: 'Kem Chống Nắng', slug: 'sunscreen', description: 'Chống nắng phổ rộng bảo vệ da tối ưu' },
+  { name: 'Mặt Nạ Dưỡng Da', slug: 'mask', description: 'Mặt nạ ngủ và mặt nạ đất sét cấp ẩm tức thì' },
+  { name: 'Nước Hoa Hồng (Toner)', slug: 'toner', description: 'Cân bằng độ ẩm và làm dịu da nhạy cảm' },
+  { name: 'Sữa Rửa Mặt', slug: 'cleanser', description: 'Làm sạch sâu bã nhờn dịu nhẹ lành tính' },
+  { name: 'Trang Điểm (Makeup)', slug: 'makeup', description: 'Son môi và mỹ phẩm trang điểm chuẩn phong cách Hàn Quốc' },
+];
+
+const sampleBrands = [
+  { name: 'COSRX', slug: 'cosrx', tag: 'Dược mỹ phẩm dịu nhẹ', origin: 'Hàn Quốc' },
+  { name: 'Beauty of Joseon', slug: 'beauty-of-joseon', tag: 'Thảo mộc Hanbang truyền thống', origin: 'Hàn Quốc' },
+  { name: 'Laneige', slug: 'laneige', tag: 'Dưỡng ẩm mọng nước', origin: 'Hàn Quốc' },
+  { name: 'Skin1004', slug: 'skin1004', tag: 'Rau má Madagascar', origin: 'Hàn Quốc' },
+  { name: 'Anua', slug: 'anua', tag: 'Diếp cá làm dịu da', origin: 'Hàn Quốc' },
+  { name: 'Torriden', slug: 'torriden', tag: 'Cấp nước đa tầng', origin: 'Hàn Quốc' },
+  { name: 'Rom&nd', slug: 'romand', tag: 'Makeup thời thượng', origin: 'Hàn Quốc' },
+  { name: 'Innisfree', slug: 'innisfree', tag: 'Thiên nhiên đảo Jeju', origin: 'Hàn Quốc' },
+  { name: 'Round Lab', slug: 'round-lab', tag: 'Nhựa cây bạch dương', origin: 'Hàn Quốc' },
+  { name: 'Some By Mi', slug: 'some-by-mi', tag: 'Chuyên gia trị mụn', origin: 'Hàn Quốc' },
+];
+
+const sampleCoupons = [
+  { code: 'KBEAUTY10', discountPercent: 10, minOrderAmount: 0, isActive: true },
+  { code: 'GLOW20', discountPercent: 20, minOrderAmount: 500000, isActive: true },
+];
+
+const sampleBanners = [
+  {
+    type: 'promo_bar',
+    title: 'Freeship toàn quốc đơn từ 399K • Nhập KBEAUTY10 giảm 10%',
+    badgeText: 'HOT PROMO',
+    linkUrl: '/products',
+    isActive: true,
+  },
+  {
+    type: 'hero',
+    title: 'Đánh Thức Làn Da Sáng Mịn Căng Bóng Chuẩn Hàn',
+    subtitle: 'Khám phá bộ sưu tập tinh chất ốc sên COSRX, kem chống nắng Beauty of Joseon, và các thương hiệu mỹ phẩm Hàn Quốc được yêu thích nhất toàn cầu.',
+    badgeText: 'K-Beauty Trending 2026 • 100% Chính Hãng',
+    linkUrl: '/products',
+    imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
+    isActive: true,
+  },
+];
+
 async function main() {
-  console.log('Seeding K-Beauty products into SQLite...');
+  console.log('Seeding K-Beauty master data & products into SQLite...');
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.brand.deleteMany();
+  await prisma.coupon.deleteMany();
+  await prisma.banner.deleteMany();
 
   for (const item of sampleProducts) {
-    await prisma.product.create({
-      data: item,
-    });
+    await prisma.product.create({ data: item });
   }
 
-  const count = await prisma.product.count();
-  console.log(`Successfully seeded ${count} K-Beauty products!`);
+  for (const cat of sampleCategories) {
+    await prisma.category.create({ data: cat });
+  }
+
+  for (const brand of sampleBrands) {
+    await prisma.brand.create({ data: brand });
+  }
+
+  for (const coupon of sampleCoupons) {
+    await prisma.coupon.create({ data: coupon });
+  }
+
+  for (const banner of sampleBanners) {
+    await prisma.banner.create({ data: banner });
+  }
+
+  const pCount = await prisma.product.count();
+  const cCount = await prisma.category.count();
+  const bCount = await prisma.brand.count();
+  const cpCount = await prisma.coupon.count();
+  const bnCount = await prisma.banner.count();
+  console.log(`Seeded: ${pCount} products, ${cCount} categories, ${bCount} brands, ${cpCount} coupons, ${bnCount} banners!`);
 }
 
 main()
