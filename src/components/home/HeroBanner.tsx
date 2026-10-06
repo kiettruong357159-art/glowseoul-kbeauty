@@ -12,21 +12,7 @@ export default function HeroBanner() {
       }}
     >
       <div className="container">
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #fff0f3 0%, #fff6f0 50%, #ffe4e6 100%)',
-            borderRadius: '28px',
-            padding: '60px 48px',
-            position: 'relative',
-            overflow: 'hidden',
-            border: '1px solid rgba(255, 240, 243, 0.9)',
-            boxShadow: 'var(--shadow-lg)',
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 0.8fr',
-            gap: '40px',
-            alignItems: 'center',
-          }}
-        >
+        <div className="hero-card">
           {/* Decorative glowing blobs */}
           <div
             style={{
@@ -63,16 +49,7 @@ export default function HeroBanner() {
               <span>K-Beauty Trending 2026 • 100% Chính Hãng</span>
             </div>
 
-            <h1
-              style={{
-                fontSize: '44px',
-                fontWeight: '800',
-                lineHeight: '1.15',
-                letterSpacing: '-1px',
-                marginBottom: '18px',
-                color: 'var(--color-text-main)',
-              }}
-            >
+            <h1 className="hero-title">
               Đánh Thức Làn Da Sáng Mịn{' '}
               <span
                 style={{

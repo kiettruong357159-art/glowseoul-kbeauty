@@ -73,6 +73,7 @@ export default function SkinTypeSelector() {
         </div>
 
         <div
+          className="responsive-grid-2"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',

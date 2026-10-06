@@ -217,6 +217,29 @@ img {
    Responsive Utilities & Media Queries
    ========================================================================== */
 
+.hero-card {
+  background: linear-gradient(135deg, #fff0f3 0%, #fff6f0 50%, #ffe4e6 100%);
+  border-radius: 28px;
+  padding: 60px 48px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 240, 243, 0.9);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.hero-title {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 18px;
+  color: var(--color-text-main);
+}
+
 @media (max-width: 767px) {
   .hide-on-mobile {
     display: none !important;
@@ -236,6 +259,15 @@ img {
   }
   .responsive-grid-1 {
     grid-template-columns: 1fr !important;
+  }
+  .hero-card {
+    grid-template-columns: 1fr !important;
+    padding: 32px 20px !important;
+    gap: 28px !important;
+  }
+  .hero-title {
+    font-size: 28px !important;
+    line-height: 1.25 !important;
   }
 }
 

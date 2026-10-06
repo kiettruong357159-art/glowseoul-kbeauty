@@ -53,6 +53,7 @@ export default function CategoryGrid() {
         </div>
 
         <div
+          className="responsive-grid-2"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',

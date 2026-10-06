@@ -26,6 +26,7 @@ export default function BrandShowcase() {
         </div>
 
         <div
+          className="responsive-grid-2"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
