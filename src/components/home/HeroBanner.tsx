@@ -2,7 +2,13 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Star } from 'lucide-react';
 
-export default function HeroBanner() {
+interface HeroBannerProps {
+  badgeText?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerProps = {}) {
   return (
     <section
       style={{
@@ -46,20 +52,26 @@ export default function HeroBanner() {
               }}
             >
               <Sparkles size={16} />
-              <span>K-Beauty Trending 2026 • 100% Chính Hãng</span>
+              <span>{badgeText || 'K-Beauty Trending 2026 • 100% Chính Hãng'}</span>
             </div>
 
             <h1 className="hero-title">
-              Đánh Thức Làn Da Sáng Mịn{' '}
-              <span
-                style={{
-                  background: 'var(--color-gradient-brand)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                Căng Bóng Chuẩn Hàn
-              </span>
+              {title ? (
+                title
+              ) : (
+                <>
+                  Đánh Thức Làn Da Sáng Mịn{' '}
+                  <span
+                    style={{
+                      background: 'var(--color-gradient-brand)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    Căng Bóng Chuẩn Hàn
+                  </span>
+                </>
+              )}
             </h1>
 
             <p
@@ -71,8 +83,7 @@ export default function HeroBanner() {
                 maxWidth: '520px',
               }}
             >
-              Khám phá bộ sưu tập tinh chất ốc sên COSRX, kem chống nắng Beauty of Joseon,
-              và các thương hiệu mỹ phẩm Hàn Quốc được yêu thích nhất toàn cầu.
+              {subtitle || 'Khám phá bộ sưu tập tinh chất ốc sên COSRX, kem chống nắng Beauty of Joseon, và các thương hiệu mỹ phẩm Hàn Quốc được yêu thích nhất toàn cầu.'}
             </p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
