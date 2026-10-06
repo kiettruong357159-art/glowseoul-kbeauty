@@ -1,0 +1,58 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  brand         String
+  price         Int
+  originalPrice Int?
+  category      String
+  skinType      String
+  ingredients   String
+  description   String
+  usage         String
+  images        String
+  rating        Float       @default(4.8)
+  reviewCount   Int         @default(0)
+  isBestSeller  Boolean     @default(false)
+  isNew         Boolean     @default(false)
+  stock         Int         @default(50)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+}
+
+model Order {
+  id              String      @id
+  customerName    String
+  phone           String
+  email           String
+  shippingAddress String
+  note            String?
+  paymentMethod   String
+  paymentStatus   String      @default("pending")
+  orderStatus     String      @default("confirmed")
+  totalAmount     Int
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  name        String
+  price       Int
+  quantity    Int
+  image       String
+}
