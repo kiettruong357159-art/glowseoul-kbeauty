@@ -23,7 +23,7 @@ const categories = [
   {
     name: 'Mặt Nạ Dưỡng',
     slug: 'mask',
-    image: 'https://images.unsplash.com/photo-1567928815116-3a13b1998493?auto=format&fit=crop&w=400&q=80',
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=80',
     count: '12+ sản phẩm',
   },
   {

@@ -77,7 +77,7 @@ export default function ProductCard({
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         transform: isHovered ? 'translateY(-6px)' : 'none',
         boxShadow: isHovered ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
       }}

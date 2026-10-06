@@ -207,7 +207,7 @@ const sampleProducts = [
     description: 'Giải pháp toàn diện 10 trong 1: Hút sạch 98% bã nhờn thừa, làm sạch sâu tế bào chết, se khít lỗ chân lông và làm mát da tức thì.',
     usage: 'Sau khi rửa mặt, thoa đều lên da khô tránh vùng mắt môi. Để 10-15 phút rồi rửa sạch với nước ấm kết hợp massage.',
     images: JSON.stringify([
-      'https://images.unsplash.com/photo-1567928815116-3a13b1998493?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80'
     ]),
     rating: 4.7,
     reviewCount: 260,

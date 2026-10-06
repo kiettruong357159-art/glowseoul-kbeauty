@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Filter, RotateCcw } from 'lucide-react';
+import { Filter, RotateCcw, Loader2 } from 'lucide-react';
+import { useCatalogFilter } from '@/context/CatalogFilterContext';
 
 const CATEGORIES = [
   { label: 'Tất cả danh mục', value: '' },
@@ -43,39 +43,13 @@ const PRICE_RANGES = [
 ];
 
 export default function FilterSidebar() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { isPending, filters, setFilter, setPriceRange, resetFilters } = useCatalogFilter();
 
-  const currentCategory = searchParams.get('category') || '';
-  const currentSkinType = searchParams.get('skinType') || '';
-  const currentBrand = searchParams.get('brand') || '';
-  const currentMinPrice = searchParams.get('minPrice') || '';
-  const currentMaxPrice = searchParams.get('maxPrice') || '';
-
-  const updateFilter = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    router.push(`/products?${params.toString()}`);
-  };
-
-  const updatePriceRange = (min: string, max: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (min) params.set('minPrice', min);
-    else params.delete('minPrice');
-
-    if (max) params.set('maxPrice', max);
-    else params.delete('maxPrice');
-
-    router.push(`/products?${params.toString()}`);
-  };
-
-  const handleReset = () => {
-    router.push('/products');
-  };
+  const currentCategory = filters.category;
+  const currentSkinType = filters.skinType;
+  const currentBrand = filters.brand;
+  const currentMinPrice = filters.minPrice;
+  const currentMaxPrice = filters.maxPrice;
 
   return (
     <aside
@@ -85,6 +59,10 @@ export default function FilterSidebar() {
         padding: '24px 20px',
         border: '1px solid var(--color-border)',
         boxShadow: 'var(--shadow-sm)',
+        position: 'sticky',
+        top: '90px',
+        maxHeight: 'calc(100vh - 110px)',
+        overflowY: 'auto',
       }}
     >
       <div
@@ -100,9 +78,20 @@ export default function FilterSidebar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '800' }}>
           <Filter size={18} color="var(--color-primary)" />
           <span>Bộ Lọc</span>
+          {isPending && (
+            <Loader2
+              size={14}
+              style={{
+                animation: 'spin 0.8s linear infinite',
+                color: 'var(--color-primary)',
+                marginLeft: '4px',
+              }}
+            />
+          )}
         </div>
         <button
-          onClick={handleReset}
+          onClick={resetFilters}
+          type="button"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -110,7 +99,14 @@ export default function FilterSidebar() {
             fontSize: '12px',
             color: 'var(--color-text-muted)',
             fontWeight: '600',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            borderRadius: 'var(--radius-sm)',
+            transition: 'color 0.15s ease',
           }}
+          title="Đặt lại tất cả bộ lọc"
         >
           <RotateCcw size={12} />
           <span>Đặt lại</span>
@@ -134,14 +130,15 @@ export default function FilterSidebar() {
                 cursor: 'pointer',
                 color: currentCategory === cat.value ? 'var(--color-primary)' : 'var(--color-text-main)',
                 fontWeight: currentCategory === cat.value ? '700' : '500',
+                transition: 'color 0.15s ease',
               }}
             >
               <input
                 type="radio"
                 name="category"
                 checked={currentCategory === cat.value}
-                onChange={() => updateFilter('category', cat.value)}
-                style={{ accentColor: 'var(--color-primary)' }}
+                onChange={() => setFilter('category', cat.value)}
+                style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }}
               />
               <span>{cat.label}</span>
             </label>
@@ -166,14 +163,15 @@ export default function FilterSidebar() {
                 cursor: 'pointer',
                 color: currentSkinType === st.value ? 'var(--color-primary)' : 'var(--color-text-main)',
                 fontWeight: currentSkinType === st.value ? '700' : '500',
+                transition: 'color 0.15s ease',
               }}
             >
               <input
                 type="radio"
                 name="skinType"
                 checked={currentSkinType === st.value}
-                onChange={() => updateFilter('skinType', st.value)}
-                style={{ accentColor: 'var(--color-primary)' }}
+                onChange={() => setFilter('skinType', st.value)}
+                style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }}
               />
               <span>{st.label}</span>
             </label>
@@ -193,6 +191,7 @@ export default function FilterSidebar() {
             gap: '8px',
             maxHeight: '180px',
             overflowY: 'auto',
+            paddingRight: '4px',
           }}
         >
           {BRANDS.map((brand) => (
@@ -206,13 +205,14 @@ export default function FilterSidebar() {
                 cursor: 'pointer',
                 color: currentBrand === brand ? 'var(--color-primary)' : 'var(--color-text-main)',
                 fontWeight: currentBrand === brand ? '700' : '500',
+                transition: 'color 0.15s ease',
               }}
             >
               <input
                 type="checkbox"
                 checked={currentBrand === brand}
-                onChange={() => updateFilter('brand', currentBrand === brand ? '' : brand)}
-                style={{ accentColor: 'var(--color-primary)' }}
+                onChange={() => setFilter('brand', currentBrand === brand ? '' : brand)}
+                style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }}
               />
               <span>{brand}</span>
             </label>
@@ -239,14 +239,15 @@ export default function FilterSidebar() {
                   cursor: 'pointer',
                   color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
                   fontWeight: isSelected ? '700' : '500',
+                  transition: 'color 0.15s ease',
                 }}
               >
                 <input
                   type="radio"
                   name="priceRange"
                   checked={isSelected}
-                  onChange={() => updatePriceRange(range.min, range.max)}
-                  style={{ accentColor: 'var(--color-primary)' }}
+                  onChange={() => setPriceRange(range.min, range.max)}
+                  style={{ accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                 />
                 <span>{range.label}</span>
               </label>
