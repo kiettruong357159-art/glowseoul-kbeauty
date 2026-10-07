@@ -1,8 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowLeft, ShieldCheck, Database } from 'lucide-react';
+import { Sparkles, ArrowLeft, Database, Menu } from 'lucide-react';
 
-export default function AdminHeader() {
+interface AdminHeaderProps {
+  onMenuClick?: () => void;
+  currentTabTitle?: string;
+}
+
+export default function AdminHeader({ onMenuClick, currentTabTitle }: AdminHeaderProps) {
   return (
     <header
       style={{
@@ -15,17 +20,35 @@ export default function AdminHeader() {
       }}
     >
       <div
-        className="container"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           height: '68px',
-          padding: '0 20px',
+          padding: '0 24px',
         }}
       >
-        {/* Brand & Badge */}
+        {/* Brand & Badge & Mobile Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {onMenuClick && (
+            <button
+              type="button"
+              onClick={onMenuClick}
+              className="show-on-mobile"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-text-main)',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              title="Mở menu quản trị"
+            >
+              <Menu size={22} />
+            </button>
+          )}
           <Link
             href="/admin"
             style={{

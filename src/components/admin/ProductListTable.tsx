@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Plus, Edit2, Trash2, Sparkles, AlertCircle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 interface ProductItem {
   id: string;
@@ -114,48 +115,30 @@ export default function ProductListTable({
           </div>
 
           {/* Category Filter */}
-          <select
+          <CustomSelect
             value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            style={{
-              padding: '9px 12px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              fontSize: '13px',
-              background: 'white',
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            <option value="">Tất cả danh mục ({categories.length})</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={onCategoryChange}
+            placeholder={`Tất cả danh mục (${categories.length})`}
+            searchPlaceholder="Tìm danh mục..."
+            options={[
+              { value: '', label: `Tất cả danh mục (${categories.length})` },
+              ...categories.map((c) => ({ value: c.slug, label: c.name })),
+            ]}
+            style={{ minWidth: '190px' }}
+          />
 
           {/* Brand Filter */}
-          <select
+          <CustomSelect
             value={selectedBrand}
-            onChange={(e) => onBrandChange(e.target.value)}
-            style={{
-              padding: '9px 12px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              fontSize: '13px',
-              background: 'white',
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            <option value="">Tất cả thương hiệu ({brands.length})</option>
-            {brands.map((b) => (
-              <option key={b.id} value={b.name}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+            onChange={onBrandChange}
+            placeholder={`Tất cả thương hiệu (${brands.length})`}
+            searchPlaceholder="Tìm thương hiệu..."
+            options={[
+              { value: '', label: `Tất cả thương hiệu (${brands.length})` },
+              ...brands.map((b) => ({ value: b.name, label: b.name })),
+            ]}
+            style={{ minWidth: '190px' }}
+          />
         </div>
 
         {/* Add Product Button */}

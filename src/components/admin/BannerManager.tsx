@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Sparkles, Check, Save, Eye } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 interface BannerItem {
   id: string;
@@ -15,6 +16,7 @@ interface BannerItem {
 }
 
 export default function BannerManager() {
+  const { showSuccess, showError } = useToast();
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,10 +81,14 @@ export default function BannerManager() {
       });
       if (res.ok) {
         setPromoSuccess(true);
+        showSuccess('Đã lưu cấu hình thanh thông báo đầu trang!');
         setTimeout(() => setPromoSuccess(false), 3000);
+      } else {
+        showError('Không thể lưu thanh thông báo');
       }
     } catch (err) {
       console.error('Error saving promo banner:', err);
+      showError('Lỗi kết nối khi lưu thanh thông báo');
     } finally {
       setSavingPromo(false);
     }
@@ -106,10 +112,14 @@ export default function BannerManager() {
       });
       if (res.ok) {
         setHeroSuccess(true);
+        showSuccess('Đã cập nhật Hero Banner trang chủ!');
         setTimeout(() => setHeroSuccess(false), 3000);
+      } else {
+        showError('Không thể lưu Hero Banner');
       }
     } catch (err) {
       console.error('Error saving hero banner:', err);
+      showError('Lỗi kết nối khi lưu Hero Banner');
     } finally {
       setSavingHero(false);
     }

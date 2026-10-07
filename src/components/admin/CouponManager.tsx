@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Ticket, Plus, Trash2, Copy, Check, AlertCircle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { useToast } from '@/context/ToastContext';
 
 interface CouponItem {
   id: string;
@@ -20,6 +21,7 @@ interface CouponManagerProps {
 }
 
 export default function CouponManager({ coupons, onRefresh }: CouponManagerProps) {
+  const { showSuccess, showError, showInfo } = useToast();
   const [code, setCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState('10');
   const [minOrderAmount, setMinOrderAmount] = useState('0');
@@ -30,6 +32,7 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
   const handleCopy = (couponCode: string) => {
     navigator.clipboard.writeText(couponCode);
     setCopiedCode(couponCode);
+    showInfo(`Đã sao chép mã "${couponCode}"`);
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
@@ -64,12 +67,15 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
         throw new Error(data.error || 'Lỗi khi tạo mã giảm giá');
       }
 
+      const createdCode = code.trim().toUpperCase();
       setCode('');
       setDiscountPercent('10');
       setMinOrderAmount('0');
+      showSuccess(`Đã tạo mã giảm giá "${createdCode}" thành công!`);
       await onRefresh();
     } catch (err: any) {
       setError(err?.message || 'Không thể tạo mã giảm giá');
+      showError(err?.message || 'Không thể tạo mã giảm giá');
     } finally {
       setSubmitting(false);
     }
@@ -80,13 +86,14 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
     try {
       const res = await fetch(`/api/admin/coupons?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
+        showSuccess(`Đã xoá mã giảm giá "${couponCode}" thành công!`);
         await onRefresh();
       } else {
         const data = await res.json();
-        alert(data.error || 'Không thể xoá mã giảm giá');
+        showError(data.error || 'Không thể xoá mã giảm giá');
       }
     } catch (err) {
-      alert('Lỗi kết nối khi xoá voucher');
+      showError('Lỗi kết nối khi xoá voucher');
     }
   };
 

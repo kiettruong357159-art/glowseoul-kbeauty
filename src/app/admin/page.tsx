@@ -3,16 +3,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStatsCards from '@/components/admin/AdminStatsCards';
+import DashboardOverview from '@/components/admin/DashboardOverview';
+import OrderManager, { OrderData } from '@/components/admin/OrderManager';
 import ProductListTable from '@/components/admin/ProductListTable';
 import ProductFormModal from '@/components/admin/ProductFormModal';
 import TaxonomiesManager from '@/components/admin/TaxonomiesManager';
 import CouponManager from '@/components/admin/CouponManager';
 import BannerManager from '@/components/admin/BannerManager';
-import { Package, Layers, Ticket, Megaphone } from 'lucide-react';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import { LayoutDashboard, ShoppingBag, Package, Layers, Ticket, Megaphone } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'taxonomies' | 'coupons' | 'banners'>('products');
+  const { showSuccess, showError } = useToast();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'taxonomies' | 'coupons' | 'banners'>('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [counts, setCounts] = useState({
+    orders: 0,
     products: 0,
     categories: 0,
     brands: 0,
@@ -23,6 +30,10 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
+
+  // Orders Tab State
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   // Products Tab State
   const [products, setProducts] = useState<any[]>([]);
@@ -87,6 +98,24 @@ export default function AdminPage() {
     refreshCountsAndTaxonomies();
   }, [refreshCountsAndTaxonomies]);
 
+  const loadOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const res = await fetch('/api/admin/orders');
+      const data = await res.json();
+      setOrders(data.orders || []);
+      setCounts((prev) => ({ ...prev, orders: data.total ?? (data.orders?.length || 0) }));
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
@@ -106,6 +135,7 @@ export default function AdminPage() {
       throw new Error(data.error || 'Lỗi khi lưu sản phẩm');
     }
 
+    showSuccess(isEdit ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm mới thành công!');
     await loadProducts();
   };
 
@@ -115,18 +145,21 @@ export default function AdminPage() {
         method: 'DELETE',
       });
       if (res.ok) {
+        showSuccess('Đã xoá sản phẩm thành công!');
         await loadProducts();
       } else {
         const data = await res.json();
-        alert(data.error || 'Không thể xoá sản phẩm');
+        showError(data.error || 'Không thể xoá sản phẩm');
       }
     } catch (err) {
       console.error('Error deleting product:', err);
-      alert('Lỗi kết nối khi xoá sản phẩm');
+      showError('Lỗi kết nối khi xoá sản phẩm');
     }
   };
 
   const tabs = [
+    { id: 'dashboard' as const, label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'orders' as const, label: 'Đơn hàng', icon: ShoppingBag, count: counts.orders },
     { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
     { id: 'taxonomies' as const, label: 'Danh mục & Thương hiệu', icon: Layers, count: counts.categories + counts.brands },
     { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
@@ -134,90 +167,60 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', paddingBottom: '80px' }}>
-      <AdminHeader />
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+      {/* 1. Left Sidebar Navigation */}
+      <AdminSidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        counts={counts}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
 
-      <main className="container" style={{ padding: '32px 20px' }}>
-        {/* Page Title & Intro */}
-        <div style={{ marginBottom: '28px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--color-text-main)', letterSpacing: '-0.5px' }}>
-            Hệ Thống Quản Lý Dữ Liệu Gốc (Master Data)
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-            Quản trị danh mục mỹ phẩm Hàn Quốc, voucher ưu đãi và cấu hình thông điệp khuyến mại tức thì.
-          </p>
-        </div>
+      {/* 2. Main Work Area (Right Column) */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, paddingBottom: '60px' }}>
+        <AdminHeader onMenuClick={() => setIsMobileSidebarOpen(true)} />
 
-        {/* Global Stats Overview */}
-        <AdminStatsCards
-          productCount={counts.products}
-          categoryCount={counts.categories}
-          brandCount={counts.brands}
-          couponCount={counts.coupons}
-        />
+        <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
+          {/* Page Title & Intro */}
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--color-text-main)', letterSpacing: '-0.5px' }}>
+              {activeTab === 'dashboard' && 'Bảng Điều Khiển Tổng Quan (Dashboard)'}
+              {activeTab === 'orders' && 'Quản Lý Đơn Đặt Hàng (Orders Management)'}
+              {activeTab === 'products' && 'Quản Lý Danh Sách Mỹ Phẩm K-Beauty'}
+              {activeTab === 'taxonomies' && 'Quản Lý Danh Mục & Thương Hiệu'}
+              {activeTab === 'coupons' && 'Cấu Hình Mã Giảm Giá & Voucher'}
+              {activeTab === 'banners' && 'Cấu Hình Banner & Khuyến Mãi'}
+            </h1>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+              Hệ thống quản trị dữ liệu gốc và vận hành thương mại điện tử GlowSeoul K-Beauty.
+            </p>
+          </div>
 
-        {/* Navigation Tabs Bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'white',
-            padding: '6px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-sm)',
-            marginBottom: '24px',
-            overflowX: 'auto',
-          }}
-        >
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 18px',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: isActive ? 'var(--color-primary)' : 'transparent',
-                  color: isActive ? 'white' : 'var(--color-text-muted)',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <Icon size={18} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      padding: '2px 7px',
-                      borderRadius: 'var(--radius-full)',
-                      background: isActive ? 'rgba(255, 255, 255, 0.25)' : 'var(--color-bg)',
-                      color: isActive ? 'white' : 'var(--color-text-muted)',
-                      fontWeight: '800',
-                    }}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+          {/* Quick Stats Overview on Master Data Tabs */}
+          {activeTab !== 'dashboard' && activeTab !== 'orders' && (
+            <AdminStatsCards
+              productCount={counts.products}
+              categoryCount={counts.categories}
+              brandCount={counts.brands}
+              couponCount={counts.coupons}
+            />
+          )}
 
-        {/* Tab Content Panels */}
-        <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
+          {/* Tab Content Panels */}
+          <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
+          {activeTab === 'dashboard' && (
+            <DashboardOverview onNavigateTab={setActiveTab} />
+          )}
+
+          {activeTab === 'orders' && (
+            <OrderManager
+              orders={orders}
+              onRefresh={loadOrders}
+              loading={ordersLoading}
+            />
+          )}
+
           {activeTab === 'products' && (
             <ProductListTable
               products={products}
@@ -268,6 +271,7 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+    </div>
 
       {/* Product Form Modal */}
       <ProductFormModal

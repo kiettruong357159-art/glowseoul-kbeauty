@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Image as ImageIcon, Sparkles, Check, AlertCircle } from 'lucide-react';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -230,52 +231,28 @@ export default function ProductFormModal({
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
                 Thương hiệu <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <CustomSelect
                 value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  background: 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                {brands.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setBrand}
+                placeholder="-- Chọn thương hiệu --"
+                searchPlaceholder="Tìm thương hiệu..."
+                options={brands.map((b) => ({ value: b.name, label: b.name }))}
+                style={{ width: '100%' }}
+              />
             </div>
 
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
                 Danh mục <span style={{ color: '#ef4444' }}>*</span>
               </label>
-              <select
+              <CustomSelect
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  background: 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCategory}
+                placeholder="-- Chọn danh mục --"
+                searchPlaceholder="Tìm danh mục..."
+                options={categories.map((c) => ({ value: c.slug, label: c.name }))}
+                style={{ width: '100%' }}
+              />
             </div>
           </div>
 
@@ -351,26 +328,19 @@ export default function ProductFormModal({
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
                 Loại da phù hợp
               </label>
-              <select
+              <CustomSelect
                 value={skinType}
-                onChange={(e) => setSkinType(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  background: 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="all">Mọi loại da</option>
-                <option value="sensitive">Da nhạy cảm</option>
-                <option value="dry">Da khô / thiếu ẩm</option>
-                <option value="oily">Da dầu / mụn</option>
-                <option value="acne">Da mụn sưng đỏ</option>
-              </select>
+                onChange={setSkinType}
+                enableSearch={false}
+                options={[
+                  { value: 'all', label: 'Mọi loại da' },
+                  { value: 'sensitive', label: 'Da nhạy cảm' },
+                  { value: 'dry', label: 'Da khô / thiếu ẩm' },
+                  { value: 'oily', label: 'Da dầu / mụn' },
+                  { value: 'acne', label: 'Da mụn sưng đỏ' },
+                ]}
+                style={{ width: '100%' }}
+              />
             </div>
           </div>
 

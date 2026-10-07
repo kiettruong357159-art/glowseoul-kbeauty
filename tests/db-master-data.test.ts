@@ -3,13 +3,9 @@ import { prisma } from '../src/lib/db';
 
 describe('Database Master Data Models', () => {
   it('should query categories, brands, coupons, and banners from sqlite', async () => {
-    // @ts-expect-error - Models might not be on PrismaClient type until pushed
     const categories = await prisma.category.findMany();
-    // @ts-expect-error - Models might not be on PrismaClient type until pushed
     const brands = await prisma.brand.findMany();
-    // @ts-expect-error - Models might not be on PrismaClient type until pushed
     const coupons = await prisma.coupon.findMany();
-    // @ts-expect-error - Models might not be on PrismaClient type until pushed
     const banners = await prisma.banner.findMany();
 
     expect(Array.isArray(categories)).toBe(true);

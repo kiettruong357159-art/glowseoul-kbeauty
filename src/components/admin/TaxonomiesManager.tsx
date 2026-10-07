@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Layers, Award, Plus, Trash2, AlertCircle, Check } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 interface CategoryItem {
   id: string;
@@ -29,6 +30,7 @@ export default function TaxonomiesManager({
   brands,
   onRefresh,
 }: TaxonomiesManagerProps) {
+  const { showSuccess, showError } = useToast();
   // Category form state
   const [catName, setCatName] = useState('');
   const [catSlug, setCatSlug] = useState('');
@@ -75,12 +77,15 @@ export default function TaxonomiesManager({
       if (!res.ok) {
         throw new Error(data.error || 'Lỗi tạo danh mục');
       }
+      const createdName = catName.trim();
       setCatName('');
       setCatSlug('');
       setCatDesc('');
+      showSuccess(`Đã tạo danh mục "${createdName}" thành công!`);
       await onRefresh();
     } catch (err: any) {
       setCatError(err?.message || 'Không thể tạo danh mục');
+      showError(err?.message || 'Không thể tạo danh mục');
     } finally {
       setCatSubmitting(false);
     }
@@ -91,13 +96,14 @@ export default function TaxonomiesManager({
     try {
       const res = await fetch(`/api/admin/categories?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
+        showSuccess(`Đã xoá danh mục "${name}" thành công!`);
         await onRefresh();
       } else {
         const data = await res.json();
-        alert(data.error || 'Không thể xoá danh mục');
+        showError(data.error || 'Không thể xoá danh mục');
       }
     } catch (err) {
-      alert('Lỗi kết nối khi xoá danh mục');
+      showError('Lỗi kết nối khi xoá danh mục');
     }
   };
 
@@ -125,12 +131,15 @@ export default function TaxonomiesManager({
       if (!res.ok) {
         throw new Error(data.error || 'Lỗi tạo thương hiệu');
       }
+      const createdBrand = brandName.trim();
       setBrandName('');
       setBrandSlug('');
       setBrandTag('');
+      showSuccess(`Đã tạo thương hiệu "${createdBrand}" thành công!`);
       await onRefresh();
     } catch (err: any) {
       setBrandError(err?.message || 'Không thể tạo thương hiệu');
+      showError(err?.message || 'Không thể tạo thương hiệu');
     } finally {
       setBrandSubmitting(false);
     }
@@ -141,13 +150,14 @@ export default function TaxonomiesManager({
     try {
       const res = await fetch(`/api/admin/brands?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
+        showSuccess(`Đã xoá thương hiệu "${name}" thành công!`);
         await onRefresh();
       } else {
         const data = await res.json();
-        alert(data.error || 'Không thể xoá thương hiệu');
+        showError(data.error || 'Không thể xoá thương hiệu');
       }
     } catch (err) {
-      alert('Lỗi kết nối khi xoá thương hiệu');
+      showError('Lỗi kết nối khi xoá thương hiệu');
     }
   };
 
