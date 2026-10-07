@@ -415,6 +415,7 @@ export default function ProductListTable({
           setCurrentPage(1);
         }}
         pageSizeOptions={[5, 8, 12, 20]}
+        itemLabel="sản phẩm"
       />
     </div>
   );

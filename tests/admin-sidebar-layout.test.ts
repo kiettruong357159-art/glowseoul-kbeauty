@@ -3,14 +3,13 @@ import fs from 'fs';
 import path from 'path';
 
 describe('Admin Left Sidebar Navigation Layout', () => {
-  it('verifies AdminSidebar component exists with brand, menu tabs, and back to store link', () => {
+  it('verifies AdminSidebar component exists with brand and menu tabs, avoiding duplicate store/db status controls', () => {
     const sidebarPath = path.resolve(__dirname, '../src/components/admin/AdminSidebar.tsx');
     expect(fs.existsSync(sidebarPath)).toBe(true);
     const content = fs.readFileSync(sidebarPath, 'utf-8');
     expect(content).toContain('AdminSidebar');
     expect(content).toContain('GlowSeoul');
     expect(content).toContain('Admin Portal');
-    expect(content).toContain('Về cửa hàng');
     expect(content).toContain('dashboard');
     expect(content).toContain('orders');
     expect(content).toContain('products');

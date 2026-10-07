@@ -284,6 +284,8 @@ const sampleBanners = [
 
 async function main() {
   console.log('Seeding K-Beauty master data & products into SQLite...');
+  await prisma.user.deleteMany();
+  await prisma.role.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
@@ -291,6 +293,73 @@ async function main() {
   await prisma.brand.deleteMany();
   await prisma.coupon.deleteMany();
   await prisma.banner.deleteMany();
+
+  // 1. Seed Roles
+  const adminRole = await prisma.role.create({
+    data: {
+      name: 'ADMIN',
+      displayName: 'Quản trị viên',
+      description: 'Toàn quyền quản trị hệ thống, dữ liệu gốc, đơn hàng và phân quyền',
+      permissions: JSON.stringify(['*']),
+    },
+  });
+
+  const staffRole = await prisma.role.create({
+    data: {
+      name: 'STAFF',
+      displayName: 'Nhân viên vận hành',
+      description: 'Xem & xử lý đơn hàng, cập nhật số lượng tồn kho sản phẩm',
+      permissions: JSON.stringify(['orders:read', 'orders:write', 'products:read', 'products:stock']),
+    },
+  });
+
+  const customerRole = await prisma.role.create({
+    data: {
+      name: 'CUSTOMER',
+      displayName: 'Khách hàng',
+      description: 'Khách hàng mua sắm, theo dõi đơn hàng cá nhân',
+      permissions: JSON.stringify(['orders:own', 'profile:edit']),
+    },
+  });
+
+  // 2. Seed Users (with hashed passwords using pbkdf2)
+  const { hashPassword } = await import('../src/lib/auth');
+
+  await prisma.user.create({
+    data: {
+      email: 'admin@glowseoul.vn',
+      name: 'Quản Trị Viên GlowSeoul',
+      password: hashPassword('admin123'),
+      roleId: adminRole.id,
+      roleName: 'ADMIN',
+      phone: '0909123456',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'staff@glowseoul.vn',
+      name: 'Trần Nhân Viên',
+      password: hashPassword('staff123'),
+      roleId: staffRole.id,
+      roleName: 'STAFF',
+      phone: '0908765432',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'customer@glowseoul.vn',
+      name: 'Lê Khách Hàng',
+      password: hashPassword('customer123'),
+      roleId: customerRole.id,
+      roleName: 'CUSTOMER',
+      phone: '0912345678',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    },
+  });
 
   for (const item of sampleProducts) {
     await prisma.product.create({ data: item });
@@ -317,7 +386,9 @@ async function main() {
   const bCount = await prisma.brand.count();
   const cpCount = await prisma.coupon.count();
   const bnCount = await prisma.banner.count();
-  console.log(`Seeded: ${pCount} products, ${cCount} categories, ${bCount} brands, ${cpCount} coupons, ${bnCount} banners!`);
+  const rCount = await prisma.role.count();
+  const uCount = await prisma.user.count();
+  console.log(`Seeded: ${rCount} roles, ${uCount} users, ${pCount} products, ${cCount} categories, ${bCount} brands, ${cpCount} coupons, ${bnCount} banners!`);
 }
 
 main()

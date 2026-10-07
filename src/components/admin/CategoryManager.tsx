@@ -1,177 +1,172 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Pencil, Trash2, Copy, Check, AlertCircle, X, Ticket } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { Search, Plus, Edit2, Pencil, Trash2, AlertCircle, X, Layers } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Pagination from '@/components/ui/Pagination';
 
-export interface CouponItem {
+export interface CategoryItem {
   id: string;
-  code: string;
-  discountPercent: number;
-  minOrderAmount: number;
-  maxDiscount?: number | null;
-  isActive: boolean;
-  expiresAt?: string | null;
+  name: string;
+  slug: string;
+  description?: string | null;
 }
 
-interface CouponManagerProps {
-  coupons: CouponItem[];
+interface CategoryManagerProps {
+  categories: CategoryItem[];
   onRefresh: () => Promise<void>;
 }
 
-export default function CouponManager({ coupons, onRefresh }: CouponManagerProps) {
-  const { showSuccess, showError, showInfo } = useToast();
+export default function CategoryManager({ categories, onRefresh }: CategoryManagerProps) {
+  const { showSuccess, showError } = useToast();
 
-  // Search, Filter & Pagination states
+  // Search, Filter & Pagination States
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [filterDesc, setFilterDesc] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Pop-up Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCoupon, setEditingCoupon] = useState<CouponItem | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
 
   // Form State
-  const [code, setCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState('10');
-  const [minOrderAmount, setMinOrderAmount] = useState('0');
-  const [isActive, setIsActive] = useState(true);
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [desc, setDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Reset pagination on search or filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, filterDesc]);
 
-  const handleCopy = (couponCode: string) => {
-    navigator.clipboard.writeText(couponCode);
-    setCopiedCode(couponCode);
-    showInfo(`Đã sao chép mã "${couponCode}"`);
-    setTimeout(() => setCopiedCode(null), 2000);
+  const autoSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   };
 
   const openCreateModal = () => {
-    setEditingCoupon(null);
-    setCode('');
-    setDiscountPercent('10');
-    setMinOrderAmount('0');
-    setIsActive(true);
+    setEditingCategory(null);
+    setName('');
+    setSlug('');
+    setDesc('');
     setError('');
     setIsModalOpen(true);
   };
 
-  const openEditModal = (c: CouponItem) => {
-    setEditingCoupon(c);
-    setCode(c.code);
-    setDiscountPercent(String(c.discountPercent));
-    setMinOrderAmount(String(c.minOrderAmount));
-    setIsActive(c.isActive);
+  const openEditModal = (cat: CategoryItem) => {
+    setEditingCategory(cat);
+    setName(cat.name);
+    setSlug(cat.slug);
+    setDesc(cat.description || '');
     setError('');
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingCoupon(null);
+    setEditingCategory(null);
     setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (!code.trim()) {
-      setError('Vui lòng nhập mã giảm giá');
-      return;
-    }
-    const percent = Number(discountPercent);
-    if (isNaN(percent) || percent <= 0 || percent > 100) {
-      setError('Phần trăm giảm giá phải từ 1 đến 100');
+    if (!name.trim() || !slug.trim()) {
+      setError('Vui lòng nhập tên và slug danh mục');
       return;
     }
 
     setSubmitting(true);
     try {
-      if (editingCoupon) {
-        const res = await fetch('/api/admin/coupons', {
+      if (editingCategory) {
+        const res = await fetch('/api/admin/categories', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id: editingCoupon.id,
-            code: code.trim().toUpperCase(),
-            discountPercent: Math.round(percent),
-            minOrderAmount: Math.max(0, Math.round(Number(minOrderAmount) || 0)),
-            isActive,
+            id: editingCategory.id,
+            name: name.trim(),
+            slug: slug.trim(),
+            description: desc.trim() || null,
           }),
         });
 
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.error || 'Lỗi khi cập nhật mã voucher');
+          throw new Error(data.error || 'Lỗi khi cập nhật danh mục');
         }
 
-        showSuccess(`Đã cập nhật mã giảm giá "${code.trim().toUpperCase()}" thành công!`);
+        showSuccess(`Đã cập nhật danh mục "${name.trim()}" thành công!`);
       } else {
-        const res = await fetch('/api/admin/coupons', {
+        const res = await fetch('/api/admin/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: code.trim().toUpperCase(),
-            discountPercent: Math.round(percent),
-            minOrderAmount: Math.max(0, Math.round(Number(minOrderAmount) || 0)),
-            isActive,
+            name: name.trim(),
+            slug: slug.trim(),
+            description: desc.trim() || null,
           }),
         });
 
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(data.error || 'Lỗi khi tạo mã giảm giá');
+          throw new Error(data.error || 'Lỗi khi tạo danh mục');
         }
 
-        showSuccess(`Đã tạo mã giảm giá "${code.trim().toUpperCase()}" thành công!`);
+        showSuccess(`Đã tạo danh mục "${name.trim()}" thành công!`);
       }
 
       closeModal();
       await onRefresh();
     } catch (err: any) {
-      setError(err?.message || 'Không thể lưu mã giảm giá');
-      showError(err?.message || 'Không thể lưu mã giảm giá');
+      setError(err?.message || 'Không thể lưu danh mục');
+      showError(err?.message || 'Không thể lưu danh mục');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteCoupon = async (id: string, couponCode: string) => {
-    if (!confirm(`Bạn có chắc muốn xoá mã voucher "${couponCode}"?`)) return;
+  const handleDeleteCategory = async (id: string, catName: string) => {
+    if (!confirm(`Bạn có chắc chắn muốn xoá danh mục "${catName}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/coupons?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/categories?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        showSuccess(`Đã xoá mã giảm giá "${couponCode}" thành công!`);
+        showSuccess(`Đã xoá danh mục "${catName}" thành công!`);
         await onRefresh();
       } else {
         const data = await res.json();
-        showError(data.error || 'Không thể xoá mã giảm giá');
+        showError(data.error || 'Không thể xoá danh mục');
       }
     } catch (err) {
-      showError('Lỗi kết nối khi xoá voucher');
+      showError('Lỗi kết nối khi xoá danh mục');
     }
   };
 
-  // Filter & Pagination logic
-  const filteredCoupons = coupons.filter((c) => {
-    if (statusFilter === 'active' && !c.isActive) return false;
-    if (statusFilter === 'inactive' && c.isActive) return false;
+  // Filter & Pagination Logic
+  const filteredCategories = categories.filter((c) => {
+    if (filterDesc === 'has_desc' && !c.description?.trim()) return false;
+    if (filterDesc === 'no_desc' && c.description?.trim()) return false;
     if (!searchTerm.trim()) return true;
-    return c.code.toLowerCase().includes(searchTerm.trim().toLowerCase());
+    const q = searchTerm.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      c.slug.toLowerCase().includes(q) ||
+      (c.description && c.description.toLowerCase().includes(q))
+    );
   });
 
-  const totalPages = Math.ceil(filteredCoupons.length / pageSize) || 1;
-  const paginatedCoupons = filteredCoupons.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(filteredCategories.length / pageSize) || 1;
+  const paginatedCategories = filteredCategories.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div>
@@ -210,7 +205,7 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm kiếm mã giảm giá, voucher..."
+              placeholder="Tìm kiếm danh mục sản phẩm..."
               style={{
                 width: '100%',
                 padding: '9px 12px 9px 36px',
@@ -223,23 +218,23 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
             />
           </div>
 
-          {/* Status Filter */}
+          {/* Filter by Description Status */}
           <CustomSelect
-            value={statusFilter}
-            onChange={setStatusFilter}
-            placeholder="Tất cả trạng thái"
-            searchPlaceholder="Lọc trạng thái..."
+            value={filterDesc}
+            onChange={setFilterDesc}
+            placeholder={`Tất cả phân loại (${categories.length})`}
+            searchPlaceholder="Lọc danh mục..."
             options={[
-              { value: '', label: `Tất cả trạng thái (${coupons.length})` },
-              { value: 'active', label: 'Đang kích hoạt' },
-              { value: 'inactive', label: 'Tạm dừng' },
+              { value: '', label: `Tất cả phân loại (${categories.length})` },
+              { value: 'has_desc', label: 'Có mô tả chi tiết' },
+              { value: 'no_desc', label: 'Chưa có mô tả' },
             ]}
             enableSearch={false}
             style={{ minWidth: '190px' }}
           />
         </div>
 
-        {/* Add Coupon Button */}
+        {/* Add Category Button */}
         <button
           type="button"
           onClick={openCreateModal}
@@ -254,11 +249,11 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
           }}
         >
           <Plus size={16} />
-          <span>Tạo mã voucher mới</span>
+          <span>Thêm danh mục mới</span>
         </button>
       </div>
 
-      {/* Standard Coupons Table */}
+      {/* Standard Categories Table */}
       <div
         style={{
           border: '1px solid var(--color-border)',
@@ -271,20 +266,19 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
           <thead>
             <tr style={{ background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
               <th style={{ padding: '12px 16px', fontWeight: '700', width: '60px' }}>#</th>
-              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Mã Voucher</th>
-              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Mức giảm giá</th>
-              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Đơn hàng tối thiểu</th>
-              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Trạng thái</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Tên danh mục</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Đường dẫn (Slug URL)</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Mô tả tóm tắt</th>
               <th style={{ padding: '12px 16px', fontWeight: '700', textAlign: 'right', width: '120px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCoupons.length === 0 ? (
+            {filteredCategories.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '48px 16px', textAlign: 'center' }}>
+                <td colSpan={5} style={{ padding: '48px 16px', textAlign: 'center' }}>
                   <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                     <AlertCircle size={32} color="var(--color-text-muted)" />
-                    <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>Không tìm thấy mã giảm giá nào</div>
+                    <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>Không tìm thấy danh mục nào</div>
                     <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                       Thử điều chỉnh lại từ khóa hoặc bộ lọc tìm kiếm
                     </div>
@@ -292,7 +286,7 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
                 </td>
               </tr>
             ) : (
-              paginatedCoupons.map((c, idx) => (
+              paginatedCategories.map((c, idx) => (
                 <tr
                   key={c.id}
                   style={{
@@ -306,65 +300,33 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
                     {(currentPage - 1) * pageSize + idx + 1}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        style={{
-                          fontWeight: '800',
-                          letterSpacing: '0.5px',
-                          color: '#059669',
-                          background: '#ecfdf5',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          border: '1px dashed #10b981',
-                          fontSize: '13px',
-                        }}
-                      >
-                        {c.code}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(c.code)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--color-text-muted)',
-                          padding: '4px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                        }}
-                        title="Sao chép mã"
-                      >
-                        {copiedCode === c.code ? <Check size={15} color="#10b981" /> : <Copy size={15} />}
-                      </button>
+                    <div style={{ fontWeight: '700', color: 'var(--color-text-main)', fontSize: '14px' }}>
+                      {c.name}
                     </div>
                   </td>
-                  <td style={{ padding: '12px 16px', fontWeight: '800', color: 'var(--color-primary)', fontSize: '14px' }}>
-                    Giảm {c.discountPercent}%
-                  </td>
-                  <td style={{ padding: '12px 16px', color: 'var(--color-text-main)' }}>
-                    {c.minOrderAmount === 0 ? 'Mọi đơn hàng' : `Từ ${formatPrice(c.minOrderAmount)}`}
-                  </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <span
+                    <code
                       style={{
-                        fontSize: '11px',
-                        fontWeight: '700',
-                        padding: '3px 9px',
-                        borderRadius: 'var(--radius-full)',
-                        background: c.isActive ? '#ecfdf5' : '#fef2f2',
-                        color: c.isActive ? '#059669' : '#ef4444',
+                        fontSize: '12px',
+                        background: 'var(--color-bg)',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        color: '#475569',
+                        border: '1px solid var(--color-border)',
                       }}
                     >
-                      {c.isActive ? 'Đang kích hoạt' : 'Tạm dừng'}
-                    </span>
+                      {c.slug}
+                    </code>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>
+                    {c.description || <span style={{ fontStyle: 'italic', opacity: 0.6 }}>Chưa có mô tả</span>}
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                       <button
                         type="button"
                         onClick={() => openEditModal(c)}
-                        title="Chỉnh sửa mã voucher"
+                        title="Chỉnh sửa danh mục"
                         style={{
                           padding: '6px',
                           borderRadius: '6px',
@@ -383,8 +345,8 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
 
                       <button
                         type="button"
-                        onClick={() => handleDeleteCoupon(c.id, c.code)}
-                        title="Xoá mã voucher"
+                        onClick={() => handleDeleteCategory(c.id, c.name)}
+                        title="Xoá danh mục"
                         style={{
                           padding: '6px',
                           borderRadius: '6px',
@@ -413,17 +375,17 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        totalItems={filteredCoupons.length}
+        totalItems={filteredCategories.length}
         pageSize={pageSize}
         onPageSizeChange={(newSize) => {
           setPageSize(newSize);
           setCurrentPage(1);
         }}
         pageSizeOptions={[5, 8, 12, 20]}
-        itemLabel="mã voucher"
+        itemLabel="danh mục"
       />
 
-      {/* Pop-up Modal Dialog for Add / Edit Coupon */}
+      {/* Pop-up Modal Dialog for Add / Edit Category */}
       {isModalOpen && (
         <div
           style={{
@@ -447,7 +409,7 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
               background: 'white',
               borderRadius: 'var(--radius-lg)',
               width: '100%',
-              maxWidth: '540px',
+              maxWidth: '560px',
               boxShadow: 'var(--shadow-lg)',
               overflow: 'hidden',
               display: 'flex',
@@ -470,21 +432,21 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
                     width: '36px',
                     height: '36px',
                     borderRadius: '8px',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    color: '#10b981',
+                    background: 'rgba(255, 107, 129, 0.1)',
+                    color: 'var(--color-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Ticket size={18} />
+                  <Layers size={18} />
                 </div>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--color-text-main)' }}>
-                    {editingCoupon ? `Chỉnh sửa mã voucher: ${editingCoupon.code}` : 'Tạo mã voucher mới'}
+                    {editingCategory ? `Chỉnh sửa danh mục: ${editingCategory.name}` : 'Thêm danh mục sản phẩm mới'}
                   </h3>
                   <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                    {editingCoupon ? 'Cập nhật mức chiết khấu và điều kiện áp dụng' : 'Phát hành mã giảm giá cho khách hàng mua sắm'}
+                    {editingCategory ? 'Cập nhật tên, slug và mô tả phân loại' : 'Tạo mới danh mục mỹ phẩm K-Beauty chuẩn SEO'}
                   </p>
                 </div>
               </div>
@@ -526,86 +488,70 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
 
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
-                  Mã voucher <span style={{ color: '#ef4444' }}>*</span>
+                  Tên danh mục <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="VD: KBEAUTY15, SALE50K..."
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (!editingCategory && (!slug || slug === autoSlug(name))) {
+                      setSlug(autoSlug(e.target.value));
+                    }
+                  }}
+                  placeholder="VD: Kem Chống Nắng, Tinh Chất Serum"
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
+                    padding: '9px 14px',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border)',
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    fontWeight: '700',
-                    letterSpacing: '0.5px',
+                    fontSize: '13px',
                     outline: 'none',
                   }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
-                    Phần trăm giảm (%) <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    max="100"
-                    value={discountPercent}
-                    onChange={(e) => setDiscountPercent(e.target.value)}
-                    placeholder="10"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
-                    Đơn hàng tối thiểu (VNĐ)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50000"
-                    value={minOrderAmount}
-                    onChange={(e) => setMinOrderAmount(e.target.value)}
-                    placeholder="0"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
+                  Slug URL (SEO) <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="kem-chong-nang"
+                  style={{
+                    width: '100%',
+                    padding: '9px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
               </div>
 
-              {/* Status active checkbox */}
-              <div style={{ paddingTop: '4px' }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700' }}>
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    style={{ accentColor: 'var(--color-primary)', width: '16px', height: '16px' }}
-                  />
-                  <span>Kích hoạt mã voucher ngay lập tức</span>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
+                  Mô tả tóm tắt
                 </label>
+                <textarea
+                  rows={3}
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  placeholder="VD: Các dòng chống nắng dịu nhẹ, kiềm dầu chuẩn Hàn Quốc..."
+                  style={{
+                    width: '100%',
+                    padding: '9px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                  }}
+                />
               </div>
 
               {/* Modal Footer Buttons */}
@@ -639,7 +585,7 @@ export default function CouponManager({ coupons, onRefresh }: CouponManagerProps
                     opacity: submitting ? 0.7 : 1,
                   }}
                 >
-                  {submitting ? 'Đang lưu...' : editingCoupon ? 'Lưu thay đổi' : 'Tạo mã voucher mới'}
+                  {submitting ? 'Đang lưu...' : editingCategory ? 'Lưu thay đổi' : 'Thêm danh mục'}
                 </button>
               </div>
             </form>

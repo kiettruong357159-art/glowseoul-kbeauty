@@ -7,15 +7,24 @@ import {
   ShoppingBag,
   Package,
   Layers,
+  Award,
   Ticket,
   Megaphone,
-  ArrowLeft,
-  Database,
   Sparkles,
   X,
+  Users,
 } from 'lucide-react';
 
-export type AdminTab = 'dashboard' | 'orders' | 'products' | 'taxonomies' | 'coupons' | 'banners';
+export type AdminTab =
+  | 'dashboard'
+  | 'orders'
+  | 'products'
+  | 'categories'
+  | 'brands'
+  | 'coupons'
+  | 'banners'
+  | 'taxonomies'
+  | 'users';
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -26,6 +35,7 @@ interface AdminSidebarProps {
     categories: number;
     brands: number;
     coupons: number;
+    users?: number;
   };
   isOpen?: boolean;
   onClose?: () => void;
@@ -51,13 +61,25 @@ export default function AdminSidebar({
       items: [
         { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
         {
-          id: 'taxonomies' as const,
-          label: 'Danh mục & Hiệu',
+          id: 'categories' as const,
+          label: 'Danh mục',
           icon: Layers,
-          count: counts.categories + counts.brands,
+          count: counts.categories,
+        },
+        {
+          id: 'brands' as const,
+          label: 'Thương hiệu',
+          icon: Award,
+          count: counts.brands,
         },
         { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
         { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
+      ],
+    },
+    {
+      title: 'HỆ THỐNG & PHÂN QUYỀN',
+      items: [
+        { id: 'users' as const, label: 'Tài khoản & Phân quyền', icon: Users, count: counts.users },
       ],
     },
   ];
@@ -281,64 +303,18 @@ export default function AdminSidebar({
         {/* Sidebar Footer */}
         <div
           style={{
-            padding: '16px 14px',
+            padding: '14px 18px',
             borderTop: '1px solid var(--color-border)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             background: '#fafafa',
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
           }}
         >
-          {/* SQLite DB Connection Status */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#ecfdf5',
-              color: '#059669',
-              padding: '6px 10px',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '11px',
-              fontWeight: '700',
-            }}
-          >
-            <span
-              style={{
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                background: '#10b981',
-                boxShadow: '0 0 6px #10b981',
-              }}
-            />
-            <Database size={13} />
-            <span>SQLite Master Data Connected</span>
-          </div>
-
-          {/* Link back to storefront */}
-          <Link
-            href="/"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '9px',
-              fontSize: '13px',
-              fontWeight: '700',
-              borderRadius: 'var(--radius-md)',
-              textDecoration: 'none',
-              background: 'white',
-              color: 'var(--color-text-main)',
-              border: '1px solid var(--color-border)',
-              boxShadow: 'var(--shadow-sm)',
-              transition: 'all 0.2s',
-            }}
-          >
-            <ArrowLeft size={16} />
-            <span>Về cửa hàng</span>
-          </Link>
+          <span>GlowSeoul Admin</span>
+          <span style={{ fontWeight: '700', color: 'var(--color-primary)' }}>v1.0</span>
         </div>
       </aside>
     </>

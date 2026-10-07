@@ -77,3 +77,54 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Không thể xoá mã giảm giá' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, code, discountPercent, minOrderAmount, maxDiscount, expiresAt, isActive } = body;
+
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json({ error: 'Thiếu mã ID coupon' }, { status: 400 });
+    }
+    if (!code || typeof code !== 'string' || !code.trim()) {
+      return NextResponse.json({ error: 'Mã giảm giá không được để trống' }, { status: 400 });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const percent = Number(discountPercent);
+    if (isNaN(percent) || percent <= 0 || percent > 100) {
+      return NextResponse.json({ error: 'Phần trăm giảm giá phải từ 1% đến 100%' }, { status: 400 });
+    }
+
+    const minAmount = minOrderAmount !== undefined ? Math.max(0, Math.round(Number(minOrderAmount))) : 0;
+    const maxDisc = maxDiscount ? Math.round(Number(maxDiscount)) : null;
+
+    const existing = await prisma.coupon.findFirst({
+      where: {
+        code: cleanCode,
+        NOT: { id },
+      },
+    });
+    if (existing) {
+      return NextResponse.json({ error: 'Mã giảm giá này đã tồn tại' }, { status: 409 });
+    }
+
+    const coupon = await prisma.coupon.update({
+      where: { id },
+      data: {
+        code: cleanCode,
+        discountPercent: Math.round(percent),
+        minOrderAmount: minAmount,
+        maxDiscount: maxDisc,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+      },
+    });
+
+    return NextResponse.json({ success: true, coupon });
+  } catch (error) {
+    console.error('Error updating coupon:', error);
+    return NextResponse.json({ error: 'Không thể cập nhật mã giảm giá' }, { status: 500 });
+  }
+}
+

@@ -1,22 +1,29 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStatsCards from '@/components/admin/AdminStatsCards';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import OrderManager, { OrderData } from '@/components/admin/OrderManager';
 import ProductListTable from '@/components/admin/ProductListTable';
 import ProductFormModal from '@/components/admin/ProductFormModal';
+import CategoryManager from '@/components/admin/CategoryManager';
+import BrandManager from '@/components/admin/BrandManager';
 import TaxonomiesManager from '@/components/admin/TaxonomiesManager';
 import CouponManager from '@/components/admin/CouponManager';
 import BannerManager from '@/components/admin/BannerManager';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import { LayoutDashboard, ShoppingBag, Package, Layers, Ticket, Megaphone } from 'lucide-react';
+import UserManager from '@/components/admin/UserManager';
+import AdminSidebar, { AdminTab } from '@/components/admin/AdminSidebar';
+import { LayoutDashboard, ShoppingBag, Package, Layers, Award, Ticket, Megaphone, Users } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdminPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { showSuccess, showError } = useToast();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'taxonomies' | 'coupons' | 'banners'>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [counts, setCounts] = useState({
     orders: 0,
@@ -24,7 +31,17 @@ export default function AdminPage() {
     categories: 0,
     brands: 0,
     coupons: 0,
+    users: 0,
   });
+
+  // Client-side route protection: require ADMIN or STAFF
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || (user.role !== 'ADMIN' && user.role !== 'STAFF')) {
+        router.push('/admin/login');
+      }
+    }
+  }, [user, authLoading, router]);
 
   // Master data for filters & forms
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -48,16 +65,18 @@ export default function AdminPage() {
 
   const refreshCountsAndTaxonomies = useCallback(async () => {
     try {
-      const [catRes, brandRes, couponRes] = await Promise.all([
+      const [catRes, brandRes, couponRes, userRes] = await Promise.all([
         fetch('/api/admin/categories'),
         fetch('/api/admin/brands'),
         fetch('/api/admin/coupons'),
+        fetch('/api/admin/users'),
       ]);
 
-      const [catData, brandData, couponData] = await Promise.all([
+      const [catData, brandData, couponData, userData] = await Promise.all([
         catRes.json(),
         brandRes.json(),
         couponRes.json(),
+        userRes.json(),
       ]);
 
       setCategories(catData.categories || []);
@@ -69,9 +88,10 @@ export default function AdminPage() {
         categories: catData.categories?.length || 0,
         brands: brandData.brands?.length || 0,
         coupons: couponData.coupons?.length || 0,
+        users: userData.total ?? (userData.users?.length || 0),
       }));
     } catch (err) {
-      console.error('Failed to load taxonomies:', err);
+      console.error('Failed to load taxonomies & users:', err);
     }
   }, []);
 
@@ -161,6 +181,8 @@ export default function AdminPage() {
     { id: 'dashboard' as const, label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'orders' as const, label: 'Đơn hàng', icon: ShoppingBag, count: counts.orders },
     { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
+    { id: 'categories' as const, label: 'Danh mục', icon: Layers, count: counts.categories },
+    { id: 'brands' as const, label: 'Thương hiệu', icon: Award, count: counts.brands },
     { id: 'taxonomies' as const, label: 'Danh mục & Thương hiệu', icon: Layers, count: counts.categories + counts.brands },
     { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
     { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
@@ -170,9 +192,12 @@ export default function AdminPage() {
     dashboard: 'Tổng quan Dashboard',
     orders: 'Quản lý đơn đặt hàng',
     products: 'Quản lý sản phẩm',
+    categories: 'Quản lý danh mục sản phẩm',
+    brands: 'Quản lý thương hiệu đối tác',
     taxonomies: 'Danh mục & Thương hiệu',
     coupons: 'Mã giảm giá & Voucher',
     banners: 'Banners & Khuyến mãi',
+    users: 'Tài khoản & Phân quyền (RBAC)',
   };
 
   return (
@@ -200,9 +225,12 @@ export default function AdminPage() {
               {activeTab === 'dashboard' && 'Bảng Điều Khiển Tổng Quan (Dashboard)'}
               {activeTab === 'orders' && 'Quản Lý Đơn Đặt Hàng (Orders Management)'}
               {activeTab === 'products' && 'Quản Lý Danh Sách Mỹ Phẩm K-Beauty'}
+              {activeTab === 'categories' && 'Quản Lý Danh Mục Sản Phẩm (Categories)'}
+              {activeTab === 'brands' && 'Quản Lý Thương Hiệu Đối Tác (Brands)'}
               {activeTab === 'taxonomies' && 'Quản Lý Danh Mục & Thương Hiệu'}
               {activeTab === 'coupons' && 'Cấu Hình Mã Giảm Giá & Voucher'}
               {activeTab === 'banners' && 'Cấu Hình Banner & Khuyến Mãi'}
+              {activeTab === 'users' && 'Quản Lý Tài Khoản & Phân Quyền (RBAC)'}
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
               Hệ thống quản trị dữ liệu gốc và vận hành thương mại điện tử GlowSeoul K-Beauty.
@@ -257,6 +285,24 @@ export default function AdminPage() {
             />
           )}
 
+          {activeTab === 'categories' && (
+            <div id="tab-categories">
+              <CategoryManager
+                categories={categories}
+                onRefresh={refreshCountsAndTaxonomies}
+              />
+            </div>
+          )}
+
+          {activeTab === 'brands' && (
+            <div id="tab-brands">
+              <BrandManager
+                brands={brands}
+                onRefresh={refreshCountsAndTaxonomies}
+              />
+            </div>
+          )}
+
           {activeTab === 'taxonomies' && (
             <div id="tab-taxonomies">
               <TaxonomiesManager
@@ -279,6 +325,12 @@ export default function AdminPage() {
           {activeTab === 'banners' && (
             <div id="tab-banners">
               <BannerManager />
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div id="tab-users">
+              <UserManager onRefreshCounts={refreshCountsAndTaxonomies} />
             </div>
           )}
         </div>

@@ -71,3 +71,49 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Không thể xoá danh mục' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, name, slug, description, image } = body;
+
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json({ error: 'Thiếu mã ID danh mục' }, { status: 400 });
+    }
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json({ error: 'Tên danh mục không được để trống' }, { status: 400 });
+    }
+    if (!slug || typeof slug !== 'string' || !slug.trim()) {
+      return NextResponse.json({ error: 'Đường dẫn (slug) không được để trống' }, { status: 400 });
+    }
+
+    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+
+    // Check duplicate slug on other categories
+    const existing = await prisma.category.findFirst({
+      where: {
+        slug: cleanSlug,
+        NOT: { id },
+      },
+    });
+    if (existing) {
+      return NextResponse.json({ error: 'Đường dẫn danh mục đã tồn tại' }, { status: 409 });
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        slug: cleanSlug,
+        description: description?.trim() || null,
+        image: image?.trim() || null,
+      },
+    });
+
+    return NextResponse.json({ success: true, category });
+  } catch (error) {
+    console.error('Error updating category:', error);
+    return NextResponse.json({ error: 'Không thể cập nhật danh mục' }, { status: 500 });
+  }
+}
+

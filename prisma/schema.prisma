@@ -99,3 +99,29 @@ model Banner {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // "ADMIN" | "STAFF" | "CUSTOMER"
+  displayName String   // "Quản trị viên", "Nhân viên vận hành", "Khách hàng"
+  description String?
+  permissions String   // JSON array string các quyền: ["*"] hoặc ["orders:*", "products:stock"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String
+  avatar    String?
+  phone     String?
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleName  String   @default("CUSTOMER") // Cache role name
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

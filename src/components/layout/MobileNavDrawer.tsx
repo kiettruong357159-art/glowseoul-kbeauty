@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { X, Sparkles, ChevronRight, ShieldCheck, Phone, Heart } from 'lucide-react';
+import { X, Sparkles, ChevronRight, ShieldCheck, Phone, Heart, User as UserIcon, LogOut, Shield } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ const CATEGORY_LINKS = [
 ];
 
 export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProps) {
+  const { user, logout } = useAuth();
+
   if (!isOpen) return null;
 
   return (
@@ -102,6 +105,103 @@ export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProp
           >
             <X size={20} />
           </button>
+        </div>
+
+        {/* User Account Section */}
+        <div style={{ padding: '14px 20px', background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)' }}>
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'var(--color-gradient-brand)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: '700',
+                    fontSize: '14px',
+                  }}
+                >
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-main)' }}>
+                    {user.name}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)' }}>
+                    {user.role}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {(user.role === 'ADMIN' || user.role === 'STAFF') && (
+                  <Link
+                    href="/admin"
+                    onClick={onClose}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 'var(--radius-full)',
+                      background: '#e0e7ff',
+                      color: '#4f46e5',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <Shield size={12} />
+                    <span>Admin</span>
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    logout();
+                    onClose();
+                  }}
+                  title="Đăng xuất"
+                  style={{
+                    padding: '6px',
+                    borderRadius: '50%',
+                    color: 'var(--color-text-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              onClick={onClose}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                width: '100%',
+                padding: '10px',
+                borderRadius: 'var(--radius-md)',
+                background: 'white',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-primary)',
+                fontWeight: '700',
+                fontSize: '13px',
+                textDecoration: 'none',
+              }}
+            >
+              <UserIcon size={16} />
+              <span>Đăng nhập / Đăng ký</span>
+            </Link>
+          )}
         </div>
 
         {/* Navigation List */}

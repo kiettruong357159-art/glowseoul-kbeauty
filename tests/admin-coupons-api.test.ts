@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GET as getCoupons, POST as postCoupon, DELETE as deleteCoupon } from '../src/app/api/admin/coupons/route';
+import { GET as getCoupons, POST as postCoupon, DELETE as deleteCoupon, PUT as putCoupon } from '../src/app/api/admin/coupons/route';
 import { POST as validateCoupon } from '../src/app/api/coupons/validate/route';
 import { NextRequest } from 'next/server';
 
@@ -96,4 +96,35 @@ describe('Admin Coupons & Validation API', () => {
     const res = await deleteCoupon(req);
     expect(res.status).toBe(404);
   });
+
+  it('PUT /api/admin/coupons updates coupon details', async () => {
+    const uniqueCode = `VIPEDIT${Date.now()}`;
+    const createReq = new NextRequest('http://localhost:3000/api/admin/coupons', {
+      method: 'POST',
+      body: JSON.stringify({ code: uniqueCode, discountPercent: 10, minOrderAmount: 100000 }),
+    });
+    const createRes = await postCoupon(createReq);
+    const created = await createRes.json();
+
+    const updateReq = new NextRequest('http://localhost:3000/api/admin/coupons', {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: created.coupon.id,
+        code: `${uniqueCode}MOD`,
+        discountPercent: 25,
+        minOrderAmount: 250000,
+        isActive: false,
+      }),
+    });
+    const updateRes = await putCoupon(updateReq);
+    expect(updateRes.status).toBe(200);
+    const updated = await updateRes.json();
+    expect(updated.coupon.code).toBe(`${uniqueCode}MOD`);
+    expect(updated.coupon.discountPercent).toBe(25);
+    expect(updated.coupon.isActive).toBe(false);
+
+    // Clean up
+    await deleteCoupon(new NextRequest(`http://localhost:3000/api/admin/coupons?id=${created.coupon.id}`));
+  });
 });
+

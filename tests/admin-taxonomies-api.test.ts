@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { GET as getCategories, POST as postCategory, DELETE as deleteCategory } from '../src/app/api/admin/categories/route';
-import { GET as getBrands, POST as postBrand, DELETE as deleteBrand } from '../src/app/api/admin/brands/route';
+import { GET as getCategories, POST as postCategory, DELETE as deleteCategory, PUT as putCategory } from '../src/app/api/admin/categories/route';
+import { GET as getBrands, POST as postBrand, DELETE as deleteBrand, PUT as putBrand } from '../src/app/api/admin/brands/route';
 import { NextRequest } from 'next/server';
 
 describe('Admin Taxonomies API (Categories & Brands)', () => {
@@ -118,4 +118,62 @@ describe('Admin Taxonomies API (Categories & Brands)', () => {
     const res = await deleteBrand(req);
     expect(res.status).toBe(404);
   });
+
+  it('PUT /api/admin/categories updates category details', async () => {
+    const uniqueSlug = `test-cat-edit-${Date.now()}`;
+    const createReq = new NextRequest('http://localhost:3000/api/admin/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Cat Pre Edit', slug: uniqueSlug }),
+    });
+    const createRes = await postCategory(createReq);
+    const created = await createRes.json();
+
+    const updateReq = new NextRequest('http://localhost:3000/api/admin/categories', {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: created.category.id,
+        name: 'Cat Post Edit',
+        slug: `${uniqueSlug}-mod`,
+        description: 'Mô tả sau khi sửa',
+      }),
+    });
+    const updateRes = await putCategory(updateReq);
+    expect(updateRes.status).toBe(200);
+    const updated = await updateRes.json();
+    expect(updated.category.name).toBe('Cat Post Edit');
+    expect(updated.category.description).toBe('Mô tả sau khi sửa');
+
+    // Clean up
+    await deleteCategory(new NextRequest(`http://localhost:3000/api/admin/categories?id=${created.category.id}`));
+  });
+
+  it('PUT /api/admin/brands updates brand details', async () => {
+    const uniqueSlug = `test-brand-edit-${Date.now()}`;
+    const createReq = new NextRequest('http://localhost:3000/api/admin/brands', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Brand Pre Edit', slug: uniqueSlug, tag: 'Tag 1' }),
+    });
+    const createRes = await postBrand(createReq);
+    const created = await createRes.json();
+
+    const updateReq = new NextRequest('http://localhost:3000/api/admin/brands', {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: created.brand.id,
+        name: 'Brand Post Edit',
+        slug: `${uniqueSlug}-mod`,
+        tag: 'Tag 2 Updated',
+        origin: 'Hàn Quốc',
+      }),
+    });
+    const updateRes = await putBrand(updateReq);
+    expect(updateRes.status).toBe(200);
+    const updated = await updateRes.json();
+    expect(updated.brand.name).toBe('Brand Post Edit');
+    expect(updated.brand.tag).toBe('Tag 2 Updated');
+
+    // Clean up
+    await deleteBrand(new NextRequest(`http://localhost:3000/api/admin/brands?id=${created.brand.id}`));
+  });
 });
+

@@ -2,12 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Sparkles, Search, Menu } from 'lucide-react';
+import { ShoppingBag, Sparkles, Search, Menu, User as UserIcon, LogOut, Shield } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import MobileNavDrawer from './MobileNavDrawer';
 
 export default function Header() {
   const { totalItems, setIsCartOpen } = useCart();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -128,6 +130,113 @@ export default function Header() {
             >
               <Search size={18} />
             </Link>
+
+            {/* User Account / Login */}
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {(user.role === 'ADMIN' || user.role === 'STAFF') && (
+                  <Link
+                    href="/admin"
+                    className="hide-on-mobile"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      color: '#4f46e5',
+                      background: '#e0e7ff',
+                      padding: '6px 12px',
+                      borderRadius: 'var(--radius-full)',
+                      textDecoration: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                    title="Đi đến trang Quản trị"
+                  >
+                    <Shield size={13} />
+                    <span>Quản trị</span>
+                  </Link>
+                )}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'var(--color-bg)',
+                    padding: '4px 10px 4px 6px',
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      background: 'var(--color-gradient-brand)',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                    }}
+                  >
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <span
+                    className="hide-on-mobile"
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      maxWidth: '90px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {user.name}
+                  </span>
+                  <button
+                    onClick={logout}
+                    title="Đăng xuất"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '3px',
+                      borderRadius: '50%',
+                      color: 'var(--color-text-subtle)',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                  background: 'white',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-main)',
+                  transition: 'all 0.2s',
+                  textDecoration: 'none',
+                }}
+                title="Đăng nhập tài khoản"
+              >
+                <UserIcon size={15} color="var(--color-primary)" />
+                <span className="hide-on-mobile">Đăng nhập</span>
+              </Link>
+            )}
 
             {/* Cart Icon Button with Badge */}
             <button
