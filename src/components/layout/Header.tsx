@@ -1,8 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Sparkles, Search, Menu, User as UserIcon, LogOut, Shield } from 'lucide-react';
+import {
+  ShoppingBag,
+  Sparkles,
+  Search,
+  Menu,
+  User as UserIcon,
+  LogOut,
+  Shield,
+  ChevronDown,
+  Sparkle,
+  Droplets,
+  Sun,
+  LayoutGrid,
+} from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import MobileNavDrawer from './MobileNavDrawer';
@@ -11,6 +24,18 @@ export default function Header() {
   const { totalItems, setIsCartOpen } = useCart();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.product-dropdown-container')) {
+        setIsProductMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
     <>
@@ -29,7 +54,7 @@ export default function Header() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: '72px',
+            height: '74px',
           }}
         >
           {/* Left: Mobile Hamburger & Brand Logo */}
@@ -43,6 +68,9 @@ export default function Header() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
               }}
               title="Mở menu"
             >
@@ -59,12 +87,14 @@ export default function Header() {
                 fontSize: '20px',
                 fontWeight: '800',
                 letterSpacing: '-0.5px',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
               <div
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   background: 'var(--color-gradient-brand)',
                   display: 'flex',
@@ -83,52 +113,260 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Navigation Links - Desktop Only */}
+          {/* Navigation Links - Desktop Only (Streamlined & Spacious) */}
           <nav
             className="hide-on-mobile"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '24px',
+              gap: '32px',
               fontWeight: '600',
               fontSize: '14px',
             }}
           >
-            <Link href="/" style={{ transition: 'color 0.2s ease' }}>
+            <Link
+              href="/"
+              style={{
+                color: 'var(--color-text-main)',
+                textDecoration: 'none',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-main)')}
+            >
               Trang chủ
             </Link>
-            <Link href="/products" style={{ transition: 'color 0.2s ease' }}>
-              Tất cả sản phẩm
-            </Link>
-            <Link href="/products?category=serum" style={{ transition: 'color 0.2s ease' }}>
-              Serum & Ampoule
-            </Link>
-            <Link href="/products?category=sunscreen" style={{ transition: 'color 0.2s ease' }}>
-              Kem chống nắng
-            </Link>
-            <Link href="/products?category=mask" style={{ transition: 'color 0.2s ease' }}>
-              Mặt nạ
-            </Link>
+
+            {/* Product Dropdown */}
+            <div
+              className="product-dropdown-container"
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setIsProductMenuOpen(true)}
+              onMouseLeave={() => setIsProductMenuOpen(false)}
+            >
+              <Link
+                href="/products"
+                onClick={() => setIsProductMenuOpen(false)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: isProductMenuOpen ? 'var(--color-primary)' : 'var(--color-text-main)',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  padding: '6px 0',
+                }}
+              >
+                <span>Sản phẩm</span>
+                <ChevronDown
+                  size={14}
+                  style={{
+                    transition: 'transform 0.2s ease',
+                    transform: isProductMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </Link>
+
+              {/* Glassmorphism Dropdown Menu */}
+              {isProductMenuOpen && (
+                <div
+                  className="header-dropdown-menu"
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    paddingTop: '8px',
+                    zIndex: 60,
+                  }}
+                >
+                  <div
+                    style={{
+                      minWidth: '270px',
+                      background: 'rgba(255, 255, 255, 0.96)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(240, 234, 230, 0.95)',
+                      borderRadius: '16px',
+                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.03)',
+                      padding: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}
+                  >
+                    <Link
+                      href="/products"
+                      onClick={() => setIsProductMenuOpen(false)}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        color: 'var(--color-primary)',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        textDecoration: 'none',
+                        background: 'var(--color-primary-light)',
+                      }}
+                    >
+                      <LayoutGrid size={15} />
+                      <div>
+                        <div>Tất cả sản phẩm</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '400' }}>
+                          Xem toàn bộ mỹ phẩm K-Beauty
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 6px' }} />
+
+                    <Link
+                      href="/products?category=serum"
+                      onClick={() => setIsProductMenuOpen(false)}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        color: 'var(--color-text-main)',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '8px',
+                          background: '#eff6ff',
+                          color: '#3b82f6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Droplets size={14} />
+                      </div>
+                      <div>
+                        <div>Serum & Ampoule</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)', fontWeight: '400' }}>
+                          Cấp ẩm & phục hồi da
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/products?category=sunscreen"
+                      onClick={() => setIsProductMenuOpen(false)}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        color: 'var(--color-text-main)',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '8px',
+                          background: '#fffbeb',
+                          color: '#d97706',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Sun size={14} />
+                      </div>
+                      <div>
+                        <div>Kem chống nắng</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)', fontWeight: '400' }}>
+                          Bảo vệ phổ rộng SPF50+
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/products?category=mask"
+                      onClick={() => setIsProductMenuOpen(false)}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        color: 'var(--color-text-main)',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '8px',
+                          background: '#fdf2f8',
+                          color: '#db2777',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Sparkle size={14} />
+                      </div>
+                      <div>
+                        <div>Mặt nạ dưỡng da</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)', fontWeight: '400' }}>
+                          Khóa ẩm & nuôi dưỡng căng bóng
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quiz Link with Pill Badge */}
             <Link
               href="/quiz"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '6px',
                 color: 'var(--color-primary)',
                 fontWeight: '700',
-                transition: 'color 0.2s ease',
+                textDecoration: 'none',
+                transition: 'opacity 0.2s ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
               <span>Trắc nghiệm Routine</span>
               <span
                 style={{
                   fontSize: '10px',
-                  background: '#ffe4e6',
+                  background: 'linear-gradient(135deg, #ffe4e6 0%, #ffedd5 100%)',
                   color: '#e11d48',
-                  padding: '1px 6px',
+                  padding: '2px 7px',
                   borderRadius: '10px',
-                  textTransform: 'uppercase',
+                  fontWeight: '800',
+                  letterSpacing: '0.3px',
+                  border: '1px solid rgba(225, 29, 72, 0.15)',
                 }}
               >
                 MỚI
@@ -147,13 +385,15 @@ export default function Header() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'var(--color-bg)',
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
                 color: 'var(--color-text-main)',
                 transition: 'all 0.2s',
+                boxShadow: 'var(--shadow-sm)',
               }}
               title="Tìm kiếm sản phẩm"
             >
-              <Search size={18} />
+              <Search size={17} />
             </Link>
 
             {/* User Account / Login */}
@@ -187,10 +427,11 @@ export default function Header() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    background: 'var(--color-bg)',
+                    background: 'var(--color-surface)',
                     padding: '4px 10px 4px 6px',
                     borderRadius: 'var(--radius-full)',
                     border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
                 >
                   <Link
@@ -206,8 +447,8 @@ export default function Header() {
                   >
                     <div
                       style={{
-                        width: '26px',
-                        height: '26px',
+                        width: '28px',
+                        height: '28px',
                         borderRadius: '50%',
                         background: 'var(--color-gradient-brand)',
                         color: 'white',
@@ -216,6 +457,7 @@ export default function Header() {
                         justifyContent: 'center',
                         fontSize: '12px',
                         fontWeight: '700',
+                        boxShadow: '0 2px 6px rgba(255, 107, 129, 0.3)',
                       }}
                     >
                       {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -241,9 +483,12 @@ export default function Header() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '3px',
+                      padding: '4px',
                       borderRadius: '50%',
                       color: 'var(--color-text-subtle)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
                       transition: 'all 0.2s',
                     }}
                   >
@@ -258,15 +503,16 @@ export default function Header() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '7px 12px',
+                  padding: '7px 14px',
                   borderRadius: 'var(--radius-full)',
                   border: '1px solid var(--color-border)',
-                  background: 'white',
+                  background: 'var(--color-surface)',
                   fontSize: '13px',
                   fontWeight: '600',
                   color: 'var(--color-text-main)',
                   transition: 'all 0.2s',
                   textDecoration: 'none',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
                 title="Đăng nhập tài khoản"
               >
@@ -285,11 +531,14 @@ export default function Header() {
                 gap: '8px',
                 background: 'var(--color-primary-light)',
                 color: 'var(--color-primary)',
-                padding: '8px 14px',
+                padding: '8px 16px',
                 borderRadius: 'var(--radius-full)',
                 fontWeight: '700',
                 fontSize: '14px',
+                border: '1px solid rgba(255, 107, 129, 0.2)',
+                cursor: 'pointer',
                 transition: 'all 0.2s',
+                boxShadow: 'var(--shadow-sm)',
               }}
               title="Xem giỏ hàng"
             >
@@ -309,6 +558,7 @@ export default function Header() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(255, 107, 129, 0.4)',
                   }}
                 >
                   {totalItems}
