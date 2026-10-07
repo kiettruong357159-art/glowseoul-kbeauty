@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Check, ShieldCheck, Heart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function ProductPurchaseAction({
   product,
@@ -20,8 +22,56 @@ export default function ProductPurchaseAction({
 }) {
   const router = useRouter();
   const { addItem, setIsCartOpen } = useCart();
+  const { user } = useAuth();
+  const { showSuccess, showError, showInfo } = useToast();
+
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
+    fetch('/api/account/wishlist')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.productIds) {
+          setIsFavorited(data.productIds.includes(product.id));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [user, product.id]);
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      showInfo('Vui lòng đăng nhập để lưu sản phẩm vào danh sách yêu thích!');
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      const res = await fetch('/api/account/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsFavorited(data.favorited);
+        showSuccess(data.message || (data.favorited ? 'Đã thêm vào yêu thích' : 'Đã bỏ yêu thích'));
+      } else {
+        showError(data.error || 'Có lỗi xảy ra');
+      }
+    } catch {
+      showError('Không thể cập nhật danh sách yêu thích');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const handleAddToCart = () => {
     addItem(
@@ -57,8 +107,8 @@ export default function ProductPurchaseAction({
 
   return (
     <div style={{ marginTop: '24px' }}>
-      {/* Quantity & Add to Cart */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '14px', flexWrap: 'wrap' }}>
+      {/* Quantity & Add to Cart & Wishlist */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
         <div
           style={{
             display: 'flex',
@@ -91,11 +141,15 @@ export default function ProductPurchaseAction({
           className="btn-outline"
           style={{
             flex: 1,
-            padding: '12px 24px',
+            padding: '12px 20px',
             fontSize: '15px',
             background: added ? '#10B981' : 'white',
             borderColor: added ? '#10B981' : 'var(--color-primary)',
             color: added ? 'white' : 'var(--color-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
           }}
         >
           {added ? (
@@ -104,9 +158,32 @@ export default function ProductPurchaseAction({
             </>
           ) : (
             <>
-              <ShoppingBag size={18} /> Thêm vào giỏ hàng
+              <ShoppingBag size={18} /> Thêm vào giỏ
             </>
           )}
+        </button>
+
+        {/* Wishlist Heart Toggle */}
+        <button
+          onClick={handleToggleWishlist}
+          disabled={wishlistLoading}
+          title={isFavorited ? 'Bỏ yêu thích' : 'Lưu vào danh sách yêu thích'}
+          style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: 'var(--radius-full)',
+            border: '1.5px solid',
+            borderColor: isFavorited ? '#ef4444' : 'var(--color-border)',
+            background: isFavorited ? '#fee2e2' : 'white',
+            color: isFavorited ? '#ef4444' : 'var(--color-text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Heart size={20} fill={isFavorited ? '#ef4444' : 'none'} />
         </button>
       </div>
 

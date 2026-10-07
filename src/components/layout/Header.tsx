@@ -109,6 +109,31 @@ export default function Header() {
             <Link href="/products?category=mask" style={{ transition: 'color 0.2s ease' }}>
               Mặt nạ
             </Link>
+            <Link
+              href="/quiz"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                color: 'var(--color-primary)',
+                fontWeight: '700',
+                transition: 'color 0.2s ease',
+              }}
+            >
+              <span>Trắc nghiệm Routine</span>
+              <span
+                style={{
+                  fontSize: '10px',
+                  background: '#ffe4e6',
+                  color: '#e11d48',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                MỚI
+              </span>
+            </Link>
           </nav>
 
           {/* Right Action Icons */}
@@ -168,35 +193,47 @@ export default function Header() {
                     border: '1px solid var(--color-border)',
                   }}
                 >
-                  <div
+                  <Link
+                    href="/account"
+                    title="Trang tài khoản của tôi"
                     style={{
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '50%',
-                      background: 'var(--color-gradient-brand)',
-                      color: 'white',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      fontWeight: '700',
+                      gap: '6px',
+                      textDecoration: 'none',
+                      color: 'inherit',
                     }}
                   >
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <span
-                    className="hide-on-mobile"
-                    style={{
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      maxWidth: '90px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {user.name}
-                  </span>
+                    <div
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        background: 'var(--color-gradient-brand)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span
+                      className="hide-on-mobile"
+                      style={{
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        maxWidth: '90px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {user.name}
+                    </span>
+                  </Link>
                   <button
                     onClick={logout}
                     title="Đăng xuất"

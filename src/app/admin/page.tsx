@@ -14,6 +14,7 @@ import TaxonomiesManager from '@/components/admin/TaxonomiesManager';
 import CouponManager from '@/components/admin/CouponManager';
 import BannerManager from '@/components/admin/BannerManager';
 import UserManager from '@/components/admin/UserManager';
+import ReviewManager from '@/components/admin/ReviewManager';
 import AdminSidebar, { AdminTab } from '@/components/admin/AdminSidebar';
 import { LayoutDashboard, ShoppingBag, Package, Layers, Award, Ticket, Megaphone, Users } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
@@ -331,6 +332,12 @@ export default function AdminPage() {
           {activeTab === 'users' && (
             <div id="tab-users">
               <UserManager onRefreshCounts={refreshCountsAndTaxonomies} />
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div id="tab-reviews">
+              <ReviewManager />
             </div>
           )}
         </div>

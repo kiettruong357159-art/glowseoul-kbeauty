@@ -9,6 +9,7 @@ import ProductGallery from '@/components/product/ProductGallery';
 import ProductTabs from '@/components/product/ProductTabs';
 import ProductPurchaseAction from '@/components/product/ProductPurchaseAction';
 import ProductCard from '@/components/product/ProductCard';
+import ProductReviewsSection from '@/components/product/ProductReviewsSection';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -201,6 +202,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
           description={product.description}
           ingredients={product.ingredients}
           usage={product.usage}
+        />
+
+        {/* Customer Reviews & Ratings Section */}
+        <ProductReviewsSection
+          productId={product.id}
+          initialRating={product.rating}
+          initialCount={product.reviewCount}
         />
 
         {/* Related Products */}

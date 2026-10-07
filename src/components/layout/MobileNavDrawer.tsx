@@ -12,6 +12,7 @@ interface MobileNavDrawerProps {
 
 const CATEGORY_LINKS = [
   { label: 'Tất cả sản phẩm', href: '/products', badge: 'HOT' },
+  { label: '🧴 Trắc nghiệm Routine', href: '/quiz', badge: 'MỚI' },
   { label: 'Serum & Tinh chất', href: '/products?category=serum', badge: null },
   { label: 'Kem chống nắng', href: '/products?category=sunscreen', badge: 'MÙA HÈ' },
   { label: 'Toner cân bằng', href: '/products?category=toner', badge: null },
@@ -111,7 +112,17 @@ export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProp
         <div style={{ padding: '14px 20px', background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)' }}>
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Link
+                href="/account"
+                onClick={onClose}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
+              >
                 <div
                   style={{
                     width: '36px',
@@ -133,10 +144,10 @@ export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProp
                     {user.name}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)' }}>
-                    {user.role}
+                    Tài khoản của tôi
                   </div>
                 </div>
-              </div>
+              </Link>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {(user.role === 'ADMIN' || user.role === 'STAFF') && (
                   <Link

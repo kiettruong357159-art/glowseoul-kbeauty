@@ -283,7 +283,9 @@ const sampleBanners = [
 ];
 
 async function main() {
-  console.log('Seeding K-Beauty master data & products into SQLite...');
+  console.log('Seeding K-Beauty master data, users & reviews into PostgreSQL Supabase...');
+  await prisma.review.deleteMany();
+  await prisma.wishlist.deleteMany();
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();
   await prisma.orderItem.deleteMany();
@@ -381,6 +383,85 @@ async function main() {
     await prisma.banner.create({ data: banner });
   }
 
+  // 3. Seed initial authentic K-Beauty customer reviews
+  const allProducts = await prisma.product.findMany();
+  const cosrxSnail = allProducts.find(p => p.name.includes('COSRX') && p.name.includes('Snail'));
+  const bojSun = allProducts.find(p => p.name.includes('Beauty of Joseon'));
+  const torriden = allProducts.find(p => p.name.includes('Torriden'));
+  const anua = allProducts.find(p => p.name.includes('Anua'));
+
+  if (cosrxSnail) {
+    await prisma.review.create({
+      data: {
+        productId: cosrxSnail.id,
+        rating: 5,
+        title: 'Cứu tinh cho da nhạy cảm mất nước!',
+        comment: 'Da căng mọng ngậm nước sau 2 tuần dùng đều đặn sáng tối. Da mình cực kỳ nhạy cảm và dễ kích ứng nhưng dùng em ốc sên này trộm vía êm ru, phục hồi hàng rào da siêu đỉnh!',
+        authorName: 'Ngọc Mai',
+        authorEmail: 'ngocmai@gmail.com',
+        skinType: 'sensitive',
+        isVerifiedPurchase: true,
+      },
+    });
+    await prisma.review.create({
+      data: {
+        productId: cosrxSnail.id,
+        rating: 5,
+        title: 'Chất nhầy thấm nhanh bất ngờ',
+        comment: 'Lúc đầu sợ bết rít vì kết cấu nhờn của ốc sên nhưng vỗ lên mặt tầm 1 phút là thấm sạch bong, tạo hiệu ứng glowy mướt mát tự nhiên chuẩn Hàn. Chắc chắn sẽ mua lại!',
+        authorName: 'Khánh Linh',
+        authorEmail: 'khanhlinh@gmail.com',
+        skinType: 'dry',
+        isVerifiedPurchase: true,
+      },
+    });
+  }
+
+  if (bojSun) {
+    await prisma.review.create({
+      data: {
+        productId: bojSun.id,
+        rating: 5,
+        title: 'Kem chống nắng chân ái mùa hè',
+        comment: 'Chất kem mỏng nhẹ như kem dưỡng ẩm, không để lại bất kỳ vệt trắng nào, không châm chích mắt. Lớp finish bóng nhẹ khỏe khoắn chứ không hề đổ dầu.',
+        authorName: 'Thuỳ Trang',
+        authorEmail: 'thuytrang@gmail.com',
+        skinType: 'all',
+        isVerifiedPurchase: true,
+      },
+    });
+  }
+
+  if (torriden) {
+    await prisma.review.create({
+      data: {
+        productId: torriden.id,
+        rating: 5,
+        title: 'Cấp ẩm đa tầng cực đỉnh',
+        comment: 'Ngồi văn phòng điều hòa 8 tiếng da hay bị khô căng tróc vảy ở cánh mũi, dùng serum Torriden này tầm 3 ngày là hết hẳn. Phân tử HA siêu nhỏ thấm cực sâu.',
+        authorName: 'Bảo Trâm',
+        authorEmail: 'baotram@gmail.com',
+        skinType: 'dry',
+        isVerifiedPurchase: true,
+      },
+    });
+  }
+
+  if (anua) {
+    await prisma.review.create({
+      data: {
+        productId: anua.id,
+        rating: 5,
+        title: 'Làm dịu nốt mụn đỏ sưng viêm',
+        comment: 'Chiết xuất 77% diếp cá quá đỉnh, mình hay thấm ra bông đắp toner pad 5 phút các nốt mụn sưng gom cồi nhanh hơn hẳn.',
+        authorName: 'Minh Anh',
+        authorEmail: 'minhanh@gmail.com',
+        skinType: 'acne',
+        isVerifiedPurchase: true,
+      },
+    });
+  }
+
   const pCount = await prisma.product.count();
   const cCount = await prisma.category.count();
   const bCount = await prisma.brand.count();
@@ -388,7 +469,8 @@ async function main() {
   const bnCount = await prisma.banner.count();
   const rCount = await prisma.role.count();
   const uCount = await prisma.user.count();
-  console.log(`Seeded: ${rCount} roles, ${uCount} users, ${pCount} products, ${cCount} categories, ${bCount} brands, ${cpCount} coupons, ${bnCount} banners!`);
+  const rvCount = await prisma.review.count();
+  console.log(`Seeded: ${rCount} roles, ${uCount} users, ${pCount} products, ${cCount} categories, ${bCount} brands, ${cpCount} coupons, ${bnCount} banners, ${rvCount} reviews!`);
 }
 
 main()
