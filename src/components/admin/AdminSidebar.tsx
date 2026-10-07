@@ -159,12 +159,12 @@ export default function AdminSidebar({
             </div>
           </Link>
 
-          {/* Close button on mobile */}
+          {/* Close button on mobile & tablet */}
           {onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="show-on-mobile"
+              className="admin-sidebar-close-btn"
               style={{
                 border: 'none',
                 background: 'transparent',
@@ -172,6 +172,7 @@ export default function AdminSidebar({
                 cursor: 'pointer',
                 padding: '4px',
               }}
+              title="Đóng menu"
             >
               <X size={20} />
             </button>

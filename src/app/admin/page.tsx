@@ -166,6 +166,15 @@ export default function AdminPage() {
     { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
   ];
 
+  const tabTitles: Record<string, string> = {
+    dashboard: 'Tổng quan Dashboard',
+    orders: 'Quản lý đơn đặt hàng',
+    products: 'Quản lý sản phẩm',
+    taxonomies: 'Danh mục & Thương hiệu',
+    coupons: 'Mã giảm giá & Voucher',
+    banners: 'Banners & Khuyến mãi',
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
       {/* 1. Left Sidebar Navigation */}
@@ -179,7 +188,10 @@ export default function AdminPage() {
 
       {/* 2. Main Work Area (Right Column) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, paddingBottom: '60px' }}>
-        <AdminHeader onMenuClick={() => setIsMobileSidebarOpen(true)} />
+        <AdminHeader
+          onMenuClick={() => setIsMobileSidebarOpen(true)}
+          currentTabTitle={tabTitles[activeTab]}
+        />
 
         <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
           {/* Page Title & Intro */}

@@ -335,11 +335,40 @@ img {
     top: 0;
     bottom: 0;
     transform: translateX(-100%);
+    z-index: 100 !important;
   }
   .admin-sidebar.open {
     transform: translateX(0) !important;
   }
+  .admin-menu-btn {
+    display: flex !important;
+  }
+  .admin-sidebar-close-btn {
+    display: flex !important;
+  }
+  .admin-desktop-breadcrumb {
+    display: none !important;
+  }
+  .admin-mobile-brand {
+    display: flex !important;
+  }
 }
+
+@media (min-width: 1024px) {
+  .admin-menu-btn {
+    display: none !important;
+  }
+  .admin-sidebar-close-btn {
+    display: none !important;
+  }
+  .admin-desktop-breadcrumb {
+    display: flex !important;
+  }
+  .admin-mobile-brand {
+    display: none !important;
+  }
+}
+
 
 
 
