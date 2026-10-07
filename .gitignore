@@ -7,3 +7,5 @@ dev.db-journal
 *.log
 .superpowers
 *.tsbuildinfo
+.env
+.env*.local
