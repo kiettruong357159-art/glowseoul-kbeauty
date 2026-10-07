@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, Truck, CheckCircle2, Clock, XCircle, Phone, MapPin, CreditCard, ChevronDown } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 import CustomSelect from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
 
 interface OrderItemData {
   id: string;
@@ -42,6 +43,13 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
   const [paymentFilter, setPaymentFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, paymentFilter]);
+
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -139,6 +147,9 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
       o.email.toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / pageSize) || 1;
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div>
@@ -254,7 +265,7 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => {
+                paginatedOrders.map((order) => {
                   const badge = getStatusBadge(order.orderStatus);
                   const BadgeIcon = badge.icon;
                   const isPaid = order.paymentStatus === 'paid';
@@ -424,6 +435,20 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
             </tbody>
           </table>
         </div>
+
+        {/* Order Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredOrders.length}
+          pageSize={pageSize}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+          pageSizeOptions={[5, 8, 12, 20]}
+        />
       </div>
 
       {/* Order Detail Modal */}

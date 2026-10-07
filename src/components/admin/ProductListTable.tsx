@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, Sparkles, AlertCircle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import CustomSelect from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
 
 interface ProductItem {
   id: string;
@@ -53,6 +54,17 @@ export default function ProductListTable({
   onDelete,
   loading = false,
 }: ProductListTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory, selectedBrand]);
+
+  const totalPages = Math.ceil(products.length / pageSize) || 1;
+  const paginatedProducts = products.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const parseFirstImage = (imagesStr: string): string => {
     try {
       const parsed = JSON.parse(imagesStr);
@@ -200,7 +212,7 @@ export default function ProductListTable({
                 </td>
               </tr>
             ) : (
-              products.map((p) => {
+              paginatedProducts.map((p) => {
                 const imgUrl = parseFirstImage(p.images);
                 return (
                   <tr
@@ -390,6 +402,20 @@ export default function ProductListTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={products.length}
+        pageSize={pageSize}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setCurrentPage(1);
+        }}
+        pageSizeOptions={[5, 8, 12, 20]}
+      />
     </div>
   );
 }
