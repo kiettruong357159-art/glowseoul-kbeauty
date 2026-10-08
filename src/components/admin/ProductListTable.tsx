@@ -37,6 +37,7 @@ interface ProductListTableProps {
   onEdit: (product: ProductItem) => void;
   onDelete: (id: string) => void;
   loading?: boolean;
+  canManage?: boolean;
 }
 
 export default function ProductListTable({
@@ -53,6 +54,7 @@ export default function ProductListTable({
   onEdit,
   onDelete,
   loading = false,
+  canManage = true,
 }: ProductListTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
@@ -154,22 +156,24 @@ export default function ProductListTable({
         </div>
 
         {/* Add Product Button */}
-        <button
-          type="button"
-          onClick={onAddNew}
-          className="btn-primary"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 18px',
-            fontSize: '13px',
-            borderRadius: 'var(--radius-md)',
-          }}
-        >
-          <Plus size={16} />
-          <span>Thêm sản phẩm mới</span>
-        </button>
+        {canManage && (
+          <button
+            type="button"
+            onClick={onAddNew}
+            className="btn-primary"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              fontSize: '13px',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
+            <Plus size={16} />
+            <span>Thêm sản phẩm mới</span>
+          </button>
+        )}
       </div>
 
       {/* Products Table */}
@@ -352,48 +356,52 @@ export default function ProductListTable({
 
                     {/* Actions */}
                     <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => onEdit(p)}
-                          title="Chỉnh sửa sản phẩm"
-                          style={{
-                            padding: '6px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--color-border)',
-                            background: 'white',
-                            color: 'var(--color-text-main)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (confirm(`Bạn có chắc chắn muốn xoá sản phẩm "${p.name}"?`)) {
-                              onDelete(p.id);
-                            }
-                          }}
-                          title="Xoá sản phẩm"
-                          style={{
-                            padding: '6px',
-                            borderRadius: '6px',
-                            border: '1px solid #fee2e2',
-                            background: '#fef2f2',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                      {canManage ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => onEdit(p)}
+                            title="Chỉnh sửa sản phẩm"
+                            style={{
+                              padding: '6px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--color-border)',
+                              background: 'white',
+                              color: 'var(--color-text-main)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Bạn có chắc chắn muốn xoá sản phẩm "${p.name}"?`)) {
+                                onDelete(p.id);
+                              }
+                            }}
+                            title="Xoá sản phẩm"
+                            style={{
+                              padding: '6px',
+                              borderRadius: '6px',
+                              border: '1px solid #fee2e2',
+                              background: '#fef2f2',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Chỉ xem</span>
+                      )}
                     </td>
                   </tr>
                 );

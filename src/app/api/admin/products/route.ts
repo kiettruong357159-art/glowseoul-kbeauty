@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUserFromCookie } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,6 +8,8 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q')?.trim() || '';
     const category = searchParams.get('category')?.trim() || '';
     const brand = searchParams.get('brand')?.trim() || '';
+    const pageParam = searchParams.get('page');
+    const pageSizeParam = searchParams.get('pageSize');
 
     const where: any = {};
 
@@ -26,15 +29,31 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : null;
+    const pageSize = pageSizeParam ? Math.min(100, Math.max(1, parseInt(pageSizeParam, 10) || 10)) : null;
+
+    const findOptions: any = {
+      where,
+      orderBy: { createdAt: 'desc' },
+    };
+
+    if (page && pageSize) {
+      findOptions.skip = (page - 1) * pageSize;
+      findOptions.take = pageSize;
+    }
+
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-      }),
+      prisma.product.findMany(findOptions),
       prisma.product.count({ where }),
     ]);
 
-    return NextResponse.json({ products, total });
+    return NextResponse.json({
+      products,
+      total,
+      page: page || 1,
+      pageSize: pageSize || total,
+      totalPages: pageSize ? Math.ceil(total / pageSize) : 1,
+    });
   } catch (error) {
     console.error('Error fetching admin products:', error);
     return NextResponse.json(
@@ -46,6 +65,22 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('products:*') ||
+        currentUser.permissions.includes('products:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền thêm sản phẩm mới' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const {
       name,
@@ -123,6 +158,22 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('products:*') ||
+        currentUser.permissions.includes('products:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền cập nhật sản phẩm' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -181,6 +232,22 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('products:*') ||
+        currentUser.permissions.includes('products:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền xoá sản phẩm' },
+          { status: 403 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

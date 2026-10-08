@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUserFromCookie } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -15,6 +16,22 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('banners:*') ||
+        currentUser.permissions.includes('banners:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền cập nhật banner' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const { id, title, subtitle, badgeText, linkUrl, imageUrl, isActive } = body;
 

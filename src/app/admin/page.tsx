@@ -273,6 +273,13 @@ export default function AdminPage() {
               onCategoryChange={setProductCategory}
               selectedBrand={productBrand}
               onBrandChange={setProductBrand}
+              canManage={
+                !user ||
+                user.role === 'ADMIN' ||
+                user.permissions?.includes('*') ||
+                user.permissions?.includes('products:manage') ||
+                user.permissions?.includes('products:*')
+              }
               onAddNew={() => {
                 setEditingProduct(null);
                 setIsProductModalOpen(true);

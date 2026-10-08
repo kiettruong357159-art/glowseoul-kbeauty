@@ -1,12 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUserFromCookie } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const coupons = await prisma.coupon.findMany({
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get('page');
+    const pageSizeParam = searchParams.get('pageSize');
+
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : null;
+    const pageSize = pageSizeParam ? Math.min(100, Math.max(1, parseInt(pageSizeParam, 10) || 10)) : null;
+
+    const findOptions: any = {
       orderBy: { createdAt: 'desc' },
+    };
+
+    if (page && pageSize) {
+      findOptions.skip = (page - 1) * pageSize;
+      findOptions.take = pageSize;
+    }
+
+    const [coupons, total] = await Promise.all([
+      prisma.coupon.findMany(findOptions),
+      prisma.coupon.count(),
+    ]);
+
+    return NextResponse.json({
+      coupons,
+      total,
+      page: page || 1,
+      pageSize: pageSize || total,
+      totalPages: pageSize ? Math.ceil(total / pageSize) : 1,
     });
-    return NextResponse.json({ coupons });
   } catch (error) {
     console.error('Error fetching coupons:', error);
     return NextResponse.json({ error: 'Không thể tải danh sách mã giảm giá' }, { status: 500 });
@@ -15,6 +40,22 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('coupons:*') ||
+        currentUser.permissions.includes('coupons:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền tạo mã giảm giá' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const { code, discountPercent, minOrderAmount, maxDiscount, expiresAt, isActive } = body;
 
@@ -58,6 +99,22 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('coupons:*') ||
+        currentUser.permissions.includes('coupons:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền xoá mã giảm giá' },
+          { status: 403 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -80,6 +137,22 @@ export async function DELETE(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const cookieHeader = request.headers.get('cookie');
+    const currentUser = await getCurrentUserFromCookie(cookieHeader);
+    if (currentUser) {
+      const isAllowed =
+        currentUser.role === 'ADMIN' ||
+        currentUser.permissions.includes('*') ||
+        currentUser.permissions.includes('coupons:*') ||
+        currentUser.permissions.includes('coupons:manage');
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Bạn không có quyền cập nhật mã giảm giá' },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const { id, code, discountPercent, minOrderAmount, maxDiscount, expiresAt, isActive } = body;
 

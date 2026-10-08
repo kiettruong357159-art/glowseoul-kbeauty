@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -50,6 +51,7 @@ export default function AdminSidebar({
   isOpen = false,
   onClose,
 }: AdminSidebarProps) {
+  const { user } = useAuth();
   const navSections = [
     {
       title: 'BÁO CÁO & KINH DOANH',
@@ -215,7 +217,18 @@ export default function AdminSidebar({
             gap: '20px',
           }}
         >
-          {navSections.map((section, sIdx) => (
+          {navSections
+            .map((section) => ({
+              ...section,
+              items: section.items.filter((item) => {
+                if (item.id === 'users') {
+                  return user?.role === 'ADMIN';
+                }
+                return true;
+              }),
+            }))
+            .filter((section) => section.items.length > 0)
+            .map((section, sIdx) => (
             <div key={sIdx}>
               <div
                 style={{
