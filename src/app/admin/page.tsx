@@ -15,6 +15,7 @@ import CouponManager from '@/components/admin/CouponManager';
 import BannerManager from '@/components/admin/BannerManager';
 import UserManager from '@/components/admin/UserManager';
 import ReviewManager from '@/components/admin/ReviewManager';
+import FlashSaleManager from '@/components/admin/FlashSaleManager';
 import AdminSidebar, { AdminTab } from '@/components/admin/AdminSidebar';
 import { LayoutDashboard, ShoppingBag, Package, Layers, Award, Ticket, Megaphone, Users } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
@@ -43,6 +44,13 @@ export default function AdminPage() {
       }
     }
   }, [user, authLoading, router]);
+
+  const canManageProducts =
+    !user ||
+    user.role === 'ADMIN' ||
+    user.permissions?.includes('*') ||
+    user.permissions?.includes('products:manage') ||
+    user.permissions?.includes('products:*');
 
   // Master data for filters & forms
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -273,13 +281,7 @@ export default function AdminPage() {
               onCategoryChange={setProductCategory}
               selectedBrand={productBrand}
               onBrandChange={setProductBrand}
-              canManage={
-                !user ||
-                user.role === 'ADMIN' ||
-                user.permissions?.includes('*') ||
-                user.permissions?.includes('products:manage') ||
-                user.permissions?.includes('products:*')
-              }
+              canManage={canManageProducts}
               onAddNew={() => {
                 setEditingProduct(null);
                 setIsProductModalOpen(true);
@@ -327,6 +329,12 @@ export default function AdminPage() {
                 coupons={coupons}
                 onRefresh={refreshCountsAndTaxonomies}
               />
+            </div>
+          )}
+
+          {activeTab === 'flash-sales' && (
+            <div id="tab-flash-sales">
+              <FlashSaleManager canManage={canManageProducts} />
             </div>
           )}
 

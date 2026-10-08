@@ -15,6 +15,7 @@ import {
   X,
   Users,
   MessageSquare,
+  Zap,
 } from 'lucide-react';
 
 export type AdminTab =
@@ -27,7 +28,8 @@ export type AdminTab =
   | 'banners'
   | 'taxonomies'
   | 'users'
-  | 'reviews';
+  | 'reviews'
+  | 'flash-sales';
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -77,6 +79,7 @@ export default function AdminSidebar({
           count: counts.brands,
         },
         { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
+        { id: 'flash-sales' as const, label: 'Flash Sale Giờ Vàng', icon: Zap },
         { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
         { id: 'reviews' as const, label: 'Đánh giá sản phẩm', icon: MessageSquare },
       ],

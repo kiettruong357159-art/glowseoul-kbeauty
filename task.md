@@ -34,3 +34,20 @@
 - [x] Build và Deploy thành công lên **Vercel Production**: `https://glowseoul-kbeauty.vercel.app` (State: **READY**).
 - [ ] Push commit lên GitHub repo `kiettruong357159-art/glowseoul-kbeauty:main`.
 
+## 7. Tính Năng Flash Sale & Khuyến Mãi Giờ Vàng (Completed)
+- [x] Lập Tech Spec 5 phần chuẩn chỉnh (`docs/superpowers/specs/2026-10-08-flash-sale-realtime-countdown.md`).
+- [x] Lập Implementation Plan chi tiết (`docs/superpowers/plans/2026-10-08-flash-sale-realtime-countdown.md`).
+- [x] Thêm model `FlashSale` và `FlashSaleItem` vào `prisma/schema.prisma`.
+- [x] Thực thi Safe SQL Migration trên Supabase & Neon qua MCP.
+- [x] Xây dựng API public `GET /api/flash-sales/active`.
+- [x] Xây dựng API admin `GET, POST, PUT, DELETE /api/admin/flash-sales` kèm RBAC.
+- [x] Cập nhật luồng `POST /api/orders` tăng `soldQuantity` khi mua sản phẩm Flash Sale.
+- [x] Xây dựng UI Atom: `CountdownTimer.tsx` (real-time countdown) và `FlashSaleProgressBar.tsx` (tiến trình cháy hàng).
+- [x] Xây dựng UI Section: `FlashSaleSection.tsx` cho trang chủ (`/`).
+- [x] Xây dựng UI Admin: `FlashSaleManager.tsx` và gắn tab vào `AdminSidebar.tsx` + `admin/page.tsx`.
+- [x] Viết test suite `tests/flash-sale.test.ts` (Vitest) kiểm thử toàn diện (130/130 tests PASSED).
+- [x] Kiểm tra build `npm run build` thành công 100% (30/30 routes).
+- [ ] Deploy lên Vercel Production và cập nhật commit.
+
+
+

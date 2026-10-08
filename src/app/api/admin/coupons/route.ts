@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromCookie } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request | NextRequest): Promise<NextResponse>;
+export async function GET(): Promise<NextResponse>;
+export async function GET(request?: Request | NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request && request.url ? new URL(request.url).searchParams : new URLSearchParams();
     const pageParam = searchParams.get('page');
     const pageSizeParam = searchParams.get('pageSize');
 

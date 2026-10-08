@@ -76,6 +76,32 @@ export async function POST(request: Request) {
       },
     });
 
+    // Cập nhật tăng số lượng đã bán (soldQuantity) cho các sản phẩm nằm trong Flash Sale đang active
+    try {
+      const now = new Date();
+      for (const item of items) {
+        if (item.id) {
+          await prisma.flashSaleItem.updateMany({
+            where: {
+              productId: item.id,
+              flashSale: {
+                isActive: true,
+                startTime: { lte: now },
+                endTime: { gt: now },
+              },
+            },
+            data: {
+              soldQuantity: {
+                increment: Number(item.quantity) || 1,
+              },
+            },
+          });
+        }
+      }
+    } catch (fsErr) {
+      console.warn('Error updating FlashSale soldQuantity:', fsErr);
+    }
+
     return NextResponse.json({ success: true, orderId: order.id, order });
   } catch (error) {
     console.error('Order creation error:', error);

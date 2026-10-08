@@ -7,6 +7,7 @@ import SkinTypeSelector from '@/components/home/SkinTypeSelector';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import BrandShowcase from '@/components/home/BrandShowcase';
 import ProductCard from '@/components/product/ProductCard';
+import FlashSaleSection from '@/components/product/FlashSaleSection';
 
 export const revalidate = 60; // ISR cache 60s
 
@@ -25,6 +26,9 @@ export default async function HomePage() {
     <div>
       {/* Hero Banner Section */}
       <HeroBanner />
+
+      {/* Real-time Flash Sale Countdown Section */}
+      <FlashSaleSection />
 
       {/* Skin Type Filter Shortcuts */}
       <SkinTypeSelector />

@@ -30,6 +30,7 @@ model Product {
   orderItems    OrderItem[]
   reviews       Review[]
   wishlists     Wishlist[]
+  flashSaleItems FlashSaleItem[]
 
   @@index([category])
   @@index([brand])
@@ -181,5 +182,36 @@ model Wishlist {
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
+}
+
+model FlashSale {
+  id          String          @id @default(cuid())
+  title       String          // "Flash Sale Giờ Vàng 20:00 - 24:00"
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  items       FlashSaleItem[]
+
+  @@index([isActive])
+  @@index([startTime, endTime])
+}
+
+model FlashSaleItem {
+  id            String    @id @default(cuid())
+  flashSaleId   String
+  flashSale     FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  discountPrice Int       // Giá sale trong khung giờ Flash Sale (VNĐ)
+  limitQuantity Int       @default(50) // Số suất tối đa
+  soldQuantity  Int       @default(0)  // Số suất đã bán
+  createdAt     DateTime  @default(now())
+
+  @@unique([flashSaleId, productId])
+  @@index([flashSaleId])
+  @@index([productId])
 }
 
