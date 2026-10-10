@@ -37,6 +37,7 @@ export default function BrandShowcase() {
             <Link
               key={b.name}
               href={`/products?brand=${encodeURIComponent(b.name)}`}
+              prefetch={true}
               style={{
                 background: 'white',
                 border: '1px solid var(--color-border)',

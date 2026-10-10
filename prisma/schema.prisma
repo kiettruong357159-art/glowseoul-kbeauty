@@ -36,6 +36,8 @@ model Product {
   @@index([brand])
   @@index([skinType])
   @@index([createdAt])
+  @@index([category, createdAt])
+  @@index([brand, createdAt])
 }
 
 model Order {
@@ -59,6 +61,8 @@ model Order {
   @@index([orderStatus])
   @@index([paymentStatus])
   @@index([createdAt])
+  @@index([orderStatus, createdAt])
+  @@index([paymentStatus, createdAt])
 }
 
 model OrderItem {

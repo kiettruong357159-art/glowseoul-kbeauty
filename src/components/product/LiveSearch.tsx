@@ -18,6 +18,24 @@ export default function LiveSearch({
     setQuery(initialValue);
   }, [initialValue]);
 
+  // True Live Search: automatically trigger search after 400ms of user typing
+  useEffect(() => {
+    if (query === initialValue) return;
+
+    const timer = setTimeout(() => {
+      const trimmed = query.trim();
+      if (onSearch) {
+        onSearch(trimmed);
+      } else if (trimmed) {
+        router.replace(`/products?q=${encodeURIComponent(trimmed)}`, { scroll: false });
+      } else {
+        router.replace('/products', { scroll: false });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [query, onSearch, router, initialValue]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();

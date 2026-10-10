@@ -65,8 +65,17 @@ export default function AdminPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productSearch, setProductSearch] = useState('');
+  const [debouncedProductSearch, setDebouncedProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('');
   const [productBrand, setProductBrand] = useState('');
+
+  // Debounce search input by 400ms to prevent flooding API requests
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedProductSearch(productSearch);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [productSearch]);
 
   // Product Modal State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -108,7 +117,7 @@ export default function AdminPage() {
     setProductsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (productSearch.trim()) params.set('q', productSearch.trim());
+      if (debouncedProductSearch.trim()) params.set('q', debouncedProductSearch.trim());
       if (productCategory) params.set('category', productCategory);
       if (productBrand) params.set('brand', productBrand);
 
@@ -121,7 +130,7 @@ export default function AdminPage() {
     } finally {
       setProductsLoading(false);
     }
-  }, [productSearch, productCategory, productBrand]);
+  }, [debouncedProductSearch, productCategory, productBrand]);
 
   useEffect(() => {
     refreshCountsAndTaxonomies();

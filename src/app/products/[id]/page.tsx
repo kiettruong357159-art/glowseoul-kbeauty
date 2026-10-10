@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Star, ChevronRight } from 'lucide-react';
 import { prisma } from '@/lib/db';
+import { getProductById } from '@/lib/cached-queries';
 import { formatPrice } from '@/lib/utils';
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductTabs from '@/components/product/ProductTabs';
@@ -11,13 +12,15 @@ import ProductPurchaseAction from '@/components/product/ProductPurchaseAction';
 import ProductCard from '@/components/product/ProductCard';
 import ProductReviewsSection from '@/components/product/ProductReviewsSection';
 
+export const revalidate = 1800; // ISR cache 30 mins on Edge CDN
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = await prisma.product.findUnique({ where: { id } });
+  const product = await getProductById(id);
 
   if (!product) {
     return {
@@ -37,9 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const product = await prisma.product.findUnique({
-    where: { id },
-  });
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();

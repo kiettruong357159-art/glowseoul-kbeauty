@@ -14,12 +14,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Batch product lookup to eliminate N+1 queries
+    const itemIds: string[] = Array.from(new Set(items.map((item: any) => String(item.id)).filter(Boolean)));
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: itemIds } },
+    });
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
     // Calculate subtotal from database prices for security
     let subtotal = 0;
     const orderItemsData = [];
 
     for (const item of items) {
-      const dbProduct = await prisma.product.findUnique({ where: { id: item.id } });
+      const dbProduct = productMap.get(item.id);
       const price = dbProduct ? dbProduct.price : item.price;
       subtotal += price * item.quantity;
 
@@ -55,52 +62,56 @@ export async function POST(request: Request) {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderId = `ORD-${randomSuffix}`;
 
-    const order = await prisma.order.create({
-      data: {
-        id: orderId,
-        customerName,
-        phone,
-        email: email || '',
-        shippingAddress,
-        note: note || '',
-        paymentMethod: paymentMethod || 'COD',
-        paymentStatus: paymentMethod === 'COD' ? 'pending' : 'pending',
-        orderStatus: 'confirmed',
-        totalAmount,
-        items: {
-          create: orderItemsData,
+    // Execute atomic transaction for order creation and flash sale updates
+    const order = await prisma.$transaction(async (tx) => {
+      const createdOrder = await tx.order.create({
+        data: {
+          id: orderId,
+          customerName,
+          phone,
+          email: email || '',
+          shippingAddress,
+          note: note || '',
+          paymentMethod: paymentMethod || 'COD',
+          paymentStatus: paymentMethod === 'COD' ? 'pending' : 'pending',
+          orderStatus: 'confirmed',
+          totalAmount,
+          items: {
+            create: orderItemsData,
+          },
         },
-      },
-      include: {
-        items: true,
-      },
-    });
+        include: {
+          items: true,
+        },
+      });
 
-    // Cập nhật tăng số lượng đã bán (soldQuantity) cho các sản phẩm nằm trong Flash Sale đang active
-    try {
+      // Cập nhật tăng số lượng đã bán (soldQuantity) cho các sản phẩm nằm trong Flash Sale đang active
       const now = new Date();
-      for (const item of items) {
-        if (item.id) {
-          await prisma.flashSaleItem.updateMany({
-            where: {
-              productId: item.id,
-              flashSale: {
-                isActive: true,
-                startTime: { lte: now },
-                endTime: { gt: now },
+      const validFlashSaleUpdates = items.filter((item: any) => Boolean(item.id));
+      if (validFlashSaleUpdates.length > 0) {
+        await Promise.all(
+          validFlashSaleUpdates.map((item: any) =>
+            tx.flashSaleItem.updateMany({
+              where: {
+                productId: item.id,
+                flashSale: {
+                  isActive: true,
+                  startTime: { lte: now },
+                  endTime: { gt: now },
+                },
               },
-            },
-            data: {
-              soldQuantity: {
-                increment: Number(item.quantity) || 1,
+              data: {
+                soldQuantity: {
+                  increment: Number(item.quantity) || 1,
+                },
               },
-            },
-          });
-        }
+            })
+          )
+        );
       }
-    } catch (fsErr) {
-      console.warn('Error updating FlashSale soldQuantity:', fsErr);
-    }
+
+      return createdOrder;
+    });
 
     return NextResponse.json({ success: true, orderId: order.id, order });
   } catch (error) {

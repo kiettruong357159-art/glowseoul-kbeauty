@@ -27,6 +27,7 @@ export default function ProductPurchaseAction({
 
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
@@ -74,6 +75,7 @@ export default function ProductPurchaseAction({
   };
 
   const handleAddToCart = () => {
+    if (added) return;
     addItem(
       {
         id: product.id,
@@ -90,6 +92,8 @@ export default function ProductPurchaseAction({
   };
 
   const handleBuyNow = () => {
+    if (isBuyingNow) return;
+    setIsBuyingNow(true);
     addItem(
       {
         id: product.id,
@@ -138,6 +142,7 @@ export default function ProductPurchaseAction({
 
         <button
           onClick={handleAddToCart}
+          disabled={added}
           className="btn-outline"
           style={{
             flex: 1,
@@ -150,6 +155,8 @@ export default function ProductPurchaseAction({
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
+            cursor: added ? 'not-allowed' : 'pointer',
+            opacity: added ? 0.9 : 1,
           }}
         >
           {added ? (
@@ -179,7 +186,7 @@ export default function ProductPurchaseAction({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'pointer',
+            cursor: wishlistLoading ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease',
           }}
         >
@@ -190,6 +197,7 @@ export default function ProductPurchaseAction({
       {/* Buy Now Button */}
       <button
         onClick={handleBuyNow}
+        disabled={isBuyingNow}
         className="btn-primary"
         style={{
           width: '100%',
@@ -197,9 +205,11 @@ export default function ProductPurchaseAction({
           fontSize: '16px',
           borderRadius: 'var(--radius-full)',
           marginBottom: '16px',
+          cursor: isBuyingNow ? 'not-allowed' : 'pointer',
+          opacity: isBuyingNow ? 0.75 : 1,
         }}
       >
-        <span>Mua ngay (Giao hàng tận nơi)</span>
+        <span>{isBuyingNow ? 'Đang chuyển tới thanh toán...' : 'Mua ngay (Giao hàng tận nơi)'}</span>
         <ArrowRight size={18} />
       </button>
 

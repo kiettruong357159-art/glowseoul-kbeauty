@@ -108,6 +108,7 @@ export default function ProductCard({
       {/* Image Container with Link */}
       <Link
         href={`/products/${product.id}`}
+        prefetch={true}
         style={{
           position: 'relative',
           width: '100%',
