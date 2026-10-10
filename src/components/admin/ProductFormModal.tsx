@@ -83,6 +83,7 @@ export default function ProductFormModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError('');
 
     if (!name.trim()) {

@@ -12,15 +12,33 @@ import FlashSaleSection from '@/components/product/FlashSaleSection';
 export const revalidate = 60; // ISR cache 60s
 
 export default async function HomePage() {
-  const bestSellers = await prisma.product.findMany({
-    where: { isBestSeller: true },
-    take: 8,
-  });
+  const productCardSelect = {
+    id: true,
+    name: true,
+    brand: true,
+    price: true,
+    originalPrice: true,
+    images: true,
+    rating: true,
+    reviewCount: true,
+    isBestSeller: true,
+    isNew: true,
+    category: true,
+    skinType: true,
+  };
 
-  const newArrivals = await prisma.product.findMany({
-    where: { isNew: true },
-    take: 4,
-  });
+  const [bestSellers, newArrivals] = await Promise.all([
+    prisma.product.findMany({
+      where: { isBestSeller: true },
+      take: 8,
+      select: productCardSelect,
+    }),
+    prisma.product.findMany({
+      where: { isNew: true },
+      take: 4,
+      select: productCardSelect,
+    }),
+  ]);
 
   return (
     <div>

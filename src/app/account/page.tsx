@@ -150,6 +150,7 @@ export default function AccountPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (profileSaving) return;
     setProfileSaving(true);
     try {
       const res = await fetch('/api/account/profile', {

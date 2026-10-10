@@ -16,10 +16,27 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { where, orderBy } = buildProductFilterQuery(params);
 
-  const products = await prisma.product.findMany({
-    where,
-    orderBy,
-  });
+  const [totalCount, products] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      orderBy,
+      select: {
+        id: true,
+        name: true,
+        brand: true,
+        price: true,
+        originalPrice: true,
+        images: true,
+        rating: true,
+        reviewCount: true,
+        isBestSeller: true,
+        isNew: true,
+        category: true,
+        skinType: true,
+      },
+    }),
+  ]);
 
   return (
     <CatalogFilterProvider>
@@ -41,7 +58,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 Tất Cả Sản Phẩm K-Beauty
               </h1>
               <p style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
-                Hiển thị {products.length} sản phẩm chính hãng chuẩn Hàn
+                Hiển thị {totalCount} sản phẩm chính hãng chuẩn Hàn
               </p>
             </div>
 

@@ -27,13 +27,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const edgeCacheHeaders = {
+      'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59',
+    };
+
     if (activeSale) {
-      return NextResponse.json({
-        success: true,
-        status: 'active',
-        flashSale: activeSale,
-        serverTime: now.toISOString(),
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          status: 'active',
+          flashSale: activeSale,
+          serverTime: now.toISOString(),
+        },
+        { headers: edgeCacheHeaders }
+      );
     }
 
     // 2. Nếu không có chiến dịch active, tìm chiến dịch sắp diễn ra tiếp theo
@@ -54,12 +61,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      status: upcomingSale ? 'upcoming' : 'none',
-      flashSale: upcomingSale || null,
-      serverTime: now.toISOString(),
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        status: upcomingSale ? 'upcoming' : 'none',
+        flashSale: upcomingSale || null,
+        serverTime: now.toISOString(),
+      },
+      { headers: edgeCacheHeaders }
+    );
   } catch (error: any) {
     console.error('Error fetching active flash sale:', error);
     return NextResponse.json(

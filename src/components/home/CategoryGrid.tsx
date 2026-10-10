@@ -47,7 +47,7 @@ export default function CategoryGrid() {
               Khám Phá Theo Nhu Cầu
             </h2>
           </div>
-          <Link href="/products" style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-primary)' }}>
+          <Link href="/products" prefetch={true} style={{ fontSize: '14px', fontWeight: '700', color: 'var(--color-primary)' }}>
             Xem tất cả →
           </Link>
         </div>
@@ -64,6 +64,7 @@ export default function CategoryGrid() {
             <Link
               key={cat.slug}
               href={`/products?category=${cat.slug}`}
+              prefetch={true}
               style={{
                 position: 'relative',
                 height: '180px',
