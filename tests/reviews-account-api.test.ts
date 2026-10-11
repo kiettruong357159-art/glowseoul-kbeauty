@@ -49,7 +49,8 @@ describe('Reviews and Account API Endpoints', () => {
     const { GET, PUT } = await import('@/app/api/account/profile/route');
 
     // 1. Unauthorized GET
-    const unauthRes = await GET();
+    const unauthReq = new NextRequest('http://localhost:3000/api/account/profile');
+    const unauthRes = await GET(unauthReq);
     expect(unauthRes.status).toBe(401);
 
     // 2. Authorized GET with user cookie
@@ -109,5 +110,63 @@ describe('Reviews and Account API Endpoints', () => {
       where: { id: added.id },
     });
     expect(check).toBeNull();
+  });
+
+  it('GET and POST /api/account/wishlist route handlers authenticate correctly via cookie', async () => {
+    const { GET, POST } = await import('@/app/api/account/wishlist/route');
+
+    const user = await prisma.user.findFirst();
+    const product = await prisma.product.findFirst();
+    expect(user).toBeDefined();
+    expect(product).toBeDefined();
+    if (!user || !product) return;
+
+    const token = createSessionToken({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.roleName,
+    });
+    const cookieHeader = `${SESSION_COOKIE_NAME}=${token}`;
+
+    // 1. Unauthenticated request returns 401
+    const unauthReq = new NextRequest('http://localhost:3000/api/account/wishlist');
+    const unauthRes = await GET(unauthReq);
+    expect(unauthRes.status).toBe(401);
+
+    // 2. Authenticated GET returns 200
+    const authGetReq = new NextRequest('http://localhost:3000/api/account/wishlist', {
+      headers: { cookie: cookieHeader },
+    });
+    const authGetRes = await GET(authGetReq);
+    expect(authGetRes.status).toBe(200);
+    const getData = await authGetRes.json();
+    expect(Array.isArray(getData.productIds)).toBe(true);
+
+    // 3. Authenticated POST toggles product in wishlist
+    const authPostReq = new NextRequest('http://localhost:3000/api/account/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: cookieHeader,
+      },
+      body: JSON.stringify({ productId: product.id }),
+    });
+    const authPostRes = await POST(authPostReq);
+    expect(authPostRes.status).toBe(200);
+    const postData = await authPostRes.json();
+    expect(postData.favorited).toBeDefined();
+
+    // 4. Toggle again to restore state
+    const authPostReq2 = new NextRequest('http://localhost:3000/api/account/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: cookieHeader,
+      },
+      body: JSON.stringify({ productId: product.id }),
+    });
+    const authPostRes2 = await POST(authPostReq2);
+    expect(authPostRes2.status).toBe(200);
   });
 });

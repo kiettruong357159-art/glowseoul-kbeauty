@@ -56,7 +56,8 @@ export async function POST(
       );
     }
 
-    const user = await getCurrentUserFromCookie();
+    const cookieHeader = request.headers.get('cookie');
+    const user = await getCurrentUserFromCookie(cookieHeader);
 
     const starRating = Math.min(5, Math.max(1, parseInt(rating, 10)));
 
