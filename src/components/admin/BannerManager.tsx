@@ -15,7 +15,11 @@ interface BannerItem {
   isActive: boolean;
 }
 
-export default function BannerManager() {
+interface BannerManagerProps {
+  onRefreshCounts?: () => void;
+}
+
+export default function BannerManager({ onRefreshCounts }: BannerManagerProps = {}) {
   const { showSuccess, showError } = useToast();
   const [, setBanners] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,6 +86,7 @@ export default function BannerManager() {
       if (res.ok) {
         setPromoSuccess(true);
         showSuccess('Đã lưu cấu hình thanh thông báo đầu trang!');
+        onRefreshCounts?.();
         setTimeout(() => setPromoSuccess(false), 3000);
       } else {
         showError('Không thể lưu thanh thông báo');
@@ -113,6 +118,7 @@ export default function BannerManager() {
       if (res.ok) {
         setHeroSuccess(true);
         showSuccess('Đã cập nhật Hero Banner trang chủ!');
+        onRefreshCounts?.();
         setTimeout(() => setHeroSuccess(false), 3000);
       } else {
         showError('Không thể lưu Hero Banner');

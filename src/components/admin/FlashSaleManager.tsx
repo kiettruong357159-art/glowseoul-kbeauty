@@ -36,9 +36,10 @@ export interface FlashSaleCampaign {
 
 interface FlashSaleManagerProps {
   canManage?: boolean;
+  onRefreshCounts?: () => void;
 }
 
-export default function FlashSaleManager({ canManage = true }: FlashSaleManagerProps) {
+export default function FlashSaleManager({ canManage = true, onRefreshCounts }: FlashSaleManagerProps) {
   const { showSuccess, showError } = useToast();
 
   const [campaigns, setCampaigns] = useState<FlashSaleCampaign[]>([]);
@@ -238,6 +239,7 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
       showSuccess(isEdit ? 'Cập nhật chiến dịch Flash Sale thành công!' : 'Tạo mới chiến dịch Flash Sale thành công!');
       setIsModalOpen(false);
       await loadCampaigns();
+      onRefreshCounts?.();
     } catch (err: any) {
       setFormError(err.message || 'Lỗi khi lưu chiến dịch');
     } finally {
@@ -260,6 +262,7 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
       }
       showSuccess('Đã xóa chiến dịch thành công!');
       await loadCampaigns();
+      onRefreshCounts?.();
     } catch (err: any) {
       showError(err.message || 'Lỗi khi xóa chiến dịch');
     }
@@ -279,6 +282,7 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
       if (!res.ok || !data.success) throw new Error(data.error || 'Lỗi');
       showSuccess(camp.isActive ? 'Đã tắt chiến dịch!' : 'Đã bật chiến dịch!');
       await loadCampaigns();
+      onRefreshCounts?.();
     } catch (err: any) {
       showError(err.message || 'Lỗi cập nhật');
     }

@@ -3,16 +3,23 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Menu, ChevronRight, LogOut, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Menu, ChevronRight, LogOut, User as UserIcon, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
 interface AdminHeaderProps {
   onMenuClick?: () => void;
   currentTabTitle?: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export default function AdminHeader({ onMenuClick, currentTabTitle = 'Bảng điều khiển' }: AdminHeaderProps) {
+export default function AdminHeader({
+  onMenuClick,
+  currentTabTitle = 'Bảng điều khiển',
+  onRefresh,
+  isRefreshing = false,
+}: AdminHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { showSuccess } = useToast();
@@ -137,8 +144,40 @@ export default function AdminHeader({ onMenuClick, currentTabTitle = 'Bảng đi
           </div>
         </div>
 
-        {/* Right Section: User Profile + Logout + Storefront Link */}
+        {/* Right Section: Refresh + User Profile + Logout + Storefront Link */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          {/* Quick Refresh Button */}
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              title="Đồng bộ và làm mới dữ liệu mới nhất từ hệ thống"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--color-border)',
+                background: isRefreshing ? 'var(--color-bg)' : 'white',
+                color: 'var(--color-text-main)',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: isRefreshing ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <RefreshCw
+                size={13}
+                style={{
+                  color: isRefreshing ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                }}
+              />
+              <span className="desktop-only">{isRefreshing ? 'Đang đồng bộ...' : 'Làm mới'}</span>
+            </button>
+          )}
+
           {/* User Profile Badge (if logged in) */}
           {user && (
             <div

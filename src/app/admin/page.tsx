@@ -34,7 +34,18 @@ export default function AdminPage() {
     brands: 0,
     coupons: 0,
     users: 0,
+    flashSales: 0,
+    banners: 0,
+    reviews: 0,
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({
+    dashboard: true,
+  });
+
+  useEffect(() => {
+    setVisitedTabs((prev) => (prev[activeTab] ? prev : { ...prev, [activeTab]: true }));
+  }, [activeTab]);
 
   // Client-side route protection: require ADMIN or STAFF
   useEffect(() => {
@@ -83,18 +94,24 @@ export default function AdminPage() {
 
   const refreshCountsAndTaxonomies = useCallback(async () => {
     try {
-      const [catRes, brandRes, couponRes, userRes] = await Promise.all([
+      const [catRes, brandRes, couponRes, userRes, flashRes, bannerRes, reviewRes] = await Promise.all([
         fetch('/api/admin/categories'),
         fetch('/api/admin/brands'),
         fetch('/api/admin/coupons'),
         fetch('/api/admin/users'),
+        fetch('/api/admin/flash-sales?page=1&pageSize=1'),
+        fetch('/api/admin/banners'),
+        fetch('/api/admin/reviews'),
       ]);
 
-      const [catData, brandData, couponData, userData] = await Promise.all([
+      const [catData, brandData, couponData, userData, flashData, bannerData, reviewData] = await Promise.all([
         catRes.json(),
         brandRes.json(),
         couponRes.json(),
         userRes.json(),
+        flashRes.json(),
+        bannerRes.json(),
+        reviewRes.json(),
       ]);
 
       setCategories(catData.categories || []);
@@ -107,9 +124,12 @@ export default function AdminPage() {
         brands: brandData.brands?.length || 0,
         coupons: couponData.coupons?.length || 0,
         users: userData.total ?? (userData.users?.length || 0),
+        flashSales: flashData.total ?? (flashData.campaigns?.length || 0),
+        banners: bannerData.banners?.length || 0,
+        reviews: reviewData.total ?? (reviewData.reviews?.length || 0),
       }));
     } catch (err) {
-      console.error('Failed to load taxonomies & users:', err);
+      console.error('Failed to load taxonomies & counts:', err);
     }
   }, []);
 
@@ -195,6 +215,22 @@ export default function AdminPage() {
     }
   };
 
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refreshCountsAndTaxonomies(),
+        loadProducts(),
+        loadOrders(),
+      ]);
+      showSuccess('Đã đồng bộ dữ liệu mới nhất thành công!');
+    } catch (err) {
+      console.error('Failed to refresh admin data:', err);
+      showError('Không thể đồng bộ dữ liệu lúc này');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const tabTitles: Record<string, string> = {
     dashboard: 'Tổng quan Dashboard',
@@ -231,6 +267,8 @@ export default function AdminPage() {
         <AdminHeader
           onMenuClick={() => setIsMobileSidebarOpen(true)}
           currentTabTitle={tabTitles[activeTab]}
+          onRefresh={handleManualRefresh}
+          isRefreshing={isRefreshing}
         />
 
         <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
@@ -247,104 +285,110 @@ export default function AdminPage() {
 
           {/* Tab Content Panels */}
           <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
-          {activeTab === 'dashboard' && (
-            <DashboardOverview onNavigateTab={setActiveTab} />
-          )}
+            {visitedTabs['dashboard'] && (
+              <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
+                <DashboardOverview onNavigateTab={setActiveTab} />
+              </div>
+            )}
 
-          {activeTab === 'orders' && (
-            <OrderManager
-              orders={orders}
-              onRefresh={loadOrders}
-              loading={ordersLoading}
-            />
-          )}
+            {visitedTabs['orders'] && (
+              <div style={{ display: activeTab === 'orders' ? 'block' : 'none' }}>
+                <OrderManager
+                  orders={orders}
+                  onRefresh={loadOrders}
+                  loading={ordersLoading}
+                />
+              </div>
+            )}
 
-          {activeTab === 'products' && (
-            <ProductListTable
-              products={products}
-              categories={categories}
-              brands={brands}
-              search={productSearch}
-              onSearchChange={setProductSearch}
-              selectedCategory={productCategory}
-              onCategoryChange={setProductCategory}
-              selectedBrand={productBrand}
-              onBrandChange={setProductBrand}
-              canManage={canManageProducts}
-              onAddNew={() => {
-                setEditingProduct(null);
-                setIsProductModalOpen(true);
-              }}
-              onEdit={(p) => {
-                setEditingProduct(p);
-                setIsProductModalOpen(true);
-              }}
-              onDelete={handleDeleteProduct}
-              loading={productsLoading}
-            />
-          )}
+            {visitedTabs['products'] && (
+              <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+                <ProductListTable
+                  products={products}
+                  categories={categories}
+                  brands={brands}
+                  search={productSearch}
+                  onSearchChange={setProductSearch}
+                  selectedCategory={productCategory}
+                  onCategoryChange={setProductCategory}
+                  selectedBrand={productBrand}
+                  onBrandChange={setProductBrand}
+                  canManage={canManageProducts}
+                  onAddNew={() => {
+                    setEditingProduct(null);
+                    setIsProductModalOpen(true);
+                  }}
+                  onEdit={(p) => {
+                    setEditingProduct(p);
+                    setIsProductModalOpen(true);
+                  }}
+                  onDelete={handleDeleteProduct}
+                  loading={productsLoading}
+                />
+              </div>
+            )}
 
-          {activeTab === 'categories' && (
-            <div id="tab-categories">
-              <CategoryManager
-                categories={categories}
-                onRefresh={refreshCountsAndTaxonomies}
-              />
-            </div>
-          )}
+            {visitedTabs['categories'] && (
+              <div id="tab-categories" style={{ display: activeTab === 'categories' ? 'block' : 'none' }}>
+                <CategoryManager
+                  categories={categories}
+                  onRefresh={refreshCountsAndTaxonomies}
+                />
+              </div>
+            )}
 
-          {activeTab === 'brands' && (
-            <div id="tab-brands">
-              <BrandManager
-                brands={brands}
-                onRefresh={refreshCountsAndTaxonomies}
-              />
-            </div>
-          )}
+            {visitedTabs['brands'] && (
+              <div id="tab-brands" style={{ display: activeTab === 'brands' ? 'block' : 'none' }}>
+                <BrandManager
+                  brands={brands}
+                  onRefresh={refreshCountsAndTaxonomies}
+                />
+              </div>
+            )}
 
-          {activeTab === 'taxonomies' && (
-            <div id="tab-taxonomies">
-              <TaxonomiesManager
-                categories={categories}
-                brands={brands}
-                onRefresh={refreshCountsAndTaxonomies}
-              />
-            </div>
-          )}
+            {visitedTabs['taxonomies'] && (
+              <div id="tab-taxonomies" style={{ display: activeTab === 'taxonomies' ? 'block' : 'none' }}>
+                <TaxonomiesManager
+                  categories={categories}
+                  brands={brands}
+                  onRefresh={refreshCountsAndTaxonomies}
+                />
+              </div>
+            )}
 
-          {activeTab === 'coupons' && (
-            <div id="tab-coupons">
-              <CouponManager
-                coupons={coupons}
-                onRefresh={refreshCountsAndTaxonomies}
-              />
-            </div>
-          )}
+            {visitedTabs['coupons'] && (
+              <div id="tab-coupons" style={{ display: activeTab === 'coupons' ? 'block' : 'none' }}>
+                <CouponManager
+                  coupons={coupons}
+                  onRefresh={refreshCountsAndTaxonomies}
+                />
+              </div>
+            )}
 
-          {activeTab === 'flash-sales' && (
-            <div id="tab-flash-sales">
-              <FlashSaleManager canManage={canManageProducts} />
-            </div>
-          )}
+            {visitedTabs['flash-sales'] && (
+              <div id="tab-flash-sales" style={{ display: activeTab === 'flash-sales' ? 'block' : 'none' }}>
+                <FlashSaleManager canManage={canManageProducts} onRefreshCounts={refreshCountsAndTaxonomies} />
+              </div>
+            )}
 
-          {activeTab === 'banners' && (
-            <div id="tab-banners">
-              <BannerManager />
-            </div>
-          )}
+            {visitedTabs['banners'] && (
+              <div id="tab-banners" style={{ display: activeTab === 'banners' ? 'block' : 'none' }}>
+                <BannerManager onRefreshCounts={refreshCountsAndTaxonomies} />
+              </div>
+            )}
 
-          {activeTab === 'users' && (
-            <div id="tab-users">
-              <UserManager onRefreshCounts={refreshCountsAndTaxonomies} />
-            </div>
-          )}
+            {visitedTabs['users'] && (
+              <div id="tab-users" style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
+                <UserManager onRefreshCounts={refreshCountsAndTaxonomies} />
+              </div>
+            )}
 
-          {activeTab === 'reviews' && (
-            <div id="tab-reviews">
-              <ReviewManager />
-            </div>
-          )}
-        </div>
+            {visitedTabs['reviews'] && (
+              <div id="tab-reviews" style={{ display: activeTab === 'reviews' ? 'block' : 'none' }}>
+                <ReviewManager onRefreshCounts={refreshCountsAndTaxonomies} />
+              </div>
+            )}
+          </div>
       </main>
     </div>
 

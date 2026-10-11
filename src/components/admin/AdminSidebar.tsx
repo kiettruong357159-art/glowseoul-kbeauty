@@ -41,6 +41,9 @@ interface AdminSidebarProps {
     brands: number;
     coupons: number;
     users?: number;
+    flashSales?: number;
+    banners?: number;
+    reviews?: number;
   };
   isOpen?: boolean;
   onClose?: () => void;
@@ -79,9 +82,9 @@ export default function AdminSidebar({
           count: counts.brands,
         },
         { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
-        { id: 'flash-sales' as const, label: 'Flash Sale Giờ Vàng', icon: Zap },
-        { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
-        { id: 'reviews' as const, label: 'Đánh giá sản phẩm', icon: MessageSquare },
+        { id: 'flash-sales' as const, label: 'Flash Sale Giờ Vàng', icon: Zap, count: counts.flashSales },
+        { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone, count: counts.banners },
+        { id: 'reviews' as const, label: 'Đánh giá sản phẩm', icon: MessageSquare, count: counts.reviews },
       ],
     },
     {

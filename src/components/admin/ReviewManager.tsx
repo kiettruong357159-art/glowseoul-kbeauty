@@ -34,7 +34,11 @@ interface AdminReviewItem {
   };
 }
 
-export default function ReviewManager() {
+interface ReviewManagerProps {
+  onRefreshCounts?: () => void;
+}
+
+export default function ReviewManager({ onRefreshCounts }: ReviewManagerProps = {}) {
   const { showSuccess, showError } = useToast();
 
   const [reviews, setReviews] = useState<AdminReviewItem[]>([]);
@@ -92,6 +96,7 @@ export default function ReviewManager() {
         setReviews((prev) => prev.filter((r) => r.id !== deleteTarget.id));
         setTotal((prev) => Math.max(0, prev - 1));
         setDeleteTarget(null);
+        onRefreshCounts?.();
       } else {
         showError(data.error || 'Xóa đánh giá thất bại');
       }
