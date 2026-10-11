@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
+import AccountOrdersSkeleton from '@/components/ui/skeletons/AccountOrdersSkeleton';
+import AccountWishlistSkeleton from '@/components/ui/skeletons/AccountWishlistSkeleton';
 import { useRouter } from 'next/navigation';
 import {
   User as UserIcon,
@@ -521,9 +523,7 @@ export default function AccountPage() {
                 </div>
 
                 {ordersLoading ? (
-                  <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-muted)' }}>
-                    Đang tải danh sách đơn hàng...
-                  </div>
+                  <AccountOrdersSkeleton />
                 ) : orders.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <div
@@ -756,9 +756,7 @@ export default function AccountPage() {
                 </div>
 
                 {wishlistLoading ? (
-                  <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-muted)' }}>
-                    Đang tải danh sách yêu thích...
-                  </div>
+                  <AccountWishlistSkeleton />
                 ) : wishlist.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <div

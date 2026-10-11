@@ -20,6 +20,7 @@ import AdminSidebar, { AdminTab } from '@/components/admin/AdminSidebar';
 import { LayoutDashboard, ShoppingBag, Package, Layers, Award, Ticket, Megaphone, Users } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
+import AdminDashboardSkeleton from '@/components/ui/skeletons/AdminDashboardSkeleton';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -220,33 +221,7 @@ export default function AdminPage() {
 
   // Prevent flashing admin dashboard content while verifying session or when unauthorized
   if (authLoading || !user || (user.role !== 'ADMIN' && user.role !== 'STAFF')) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--color-bg)',
-          gap: '16px',
-        }}
-      >
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            border: '3px solid var(--color-border)',
-            borderTopColor: 'var(--color-primary)',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
-          }}
-        />
-        <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
-          Đang kiểm tra quyền truy cập quản trị...
-        </p>
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   return (

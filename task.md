@@ -38,3 +38,26 @@
   - [x] Viết test suite `tests/image-fallback.test.ts` (141/141 tests passed)
   - [x] Xác minh production build `npm run build` thành công 100%
 
+- [x] **Giai Đoạn 7: Xây Dựng Hệ Thống Loading Skeletons Chuyên Biệt Từng Trang**
+  - [x] Thêm utility class `.skeleton-shimmer` và `.skeleton-box` chuẩn HSL ánh hồng pastel tại `src/app/globals.css`
+  - [x] Xây dựng bộ thư viện UI Skeletons dạng module:
+    - `src/components/ui/skeletons/SkeletonBox.tsx`
+    - `src/components/ui/skeletons/ProductCardSkeleton.tsx`
+    - `src/components/ui/skeletons/AccountOrdersSkeleton.tsx`
+    - `src/components/ui/skeletons/AccountWishlistSkeleton.tsx`
+    - `src/components/ui/skeletons/AdminTableSkeleton.tsx`
+    - `src/components/ui/skeletons/AdminDashboardSkeleton.tsx`
+  - [x] Thiết kế file `loading.tsx` chuẩn theo layout riêng biệt cho từng trang Next.js:
+    - `src/app/loading.tsx`: Trang chủ (Hero banner + Danh mục + Flash Sale + Best Sellers)
+    - `src/app/products/loading.tsx`: Trang danh mục sản phẩm (Filter sidebar 260px + Grid 8 sản phẩm)
+    - `src/app/products/[id]/loading.tsx`: Trang chi tiết sản phẩm (Gallery 1:1 + Buy Box + Tabs + Reviews)
+    - `src/app/account/loading.tsx`: Trang cá nhân (Banner profile + Sidebar tabs + Danh sách đơn hàng)
+    - `src/app/admin/loading.tsx`: Trang quản trị Admin (Sidebar + Header + 4 KPI Cards + Bảng dữ liệu)
+    - `src/app/checkout/loading.tsx`: Trang thanh toán (Form thông tin giao hàng + Tóm tắt giỏ hàng)
+    - `src/app/orders/[id]/loading.tsx`: Trang xác nhận & theo dõi đơn hàng (Banner + Thanh 4 bước trạng thái + Chi tiết đơn)
+    - `src/app/quiz/loading.tsx`: Trang trắc nghiệm chu trình da (Thanh tiến độ + Thẻ câu hỏi 4 lựa chọn)
+  - [x] Cải thiện loading state cục bộ cho `/account` và `/admin` (thay thế văn bản "Đang tải..." và spinner bằng skeletons)
+  - [x] Viết test suite `tests/page-skeletons.test.ts` (150/150 tests passed)
+  - [x] Xác minh production build `npm run build` thành công 100%
+
+

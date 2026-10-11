@@ -25,6 +25,7 @@ import { useToast } from '@/context/ToastContext';
 import CustomSelect from '@/components/ui/CustomSelect';
 import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 import Pagination from '@/components/ui/Pagination';
+import AdminTableSkeleton from '@/components/ui/skeletons/AdminTableSkeleton';
 
 interface OrderItemData {
   id: string;
@@ -240,6 +241,10 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
     { value: 'delivered', label: 'Đã giao', icon: CheckCircle2, color: '#047857' },
     { value: 'cancelled', label: 'Đã huỷ', icon: XCircle, color: '#b91c1c' },
   ];
+
+  if (loading && orders.length === 0) {
+    return <AdminTableSkeleton rows={6} />;
+  }
 
   return (
     <div>

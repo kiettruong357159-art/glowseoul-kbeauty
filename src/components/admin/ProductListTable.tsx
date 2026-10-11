@@ -4,6 +4,7 @@ import { formatPrice } from '@/lib/utils';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Pagination from '@/components/ui/Pagination';
 import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
+import AdminTableSkeleton from '@/components/ui/skeletons/AdminTableSkeleton';
 
 interface ProductItem {
   id: string;
@@ -71,6 +72,10 @@ export default function ProductListTable({
   const parseFirstImage = (imagesStr: string): string => {
     return getProductImageUrl(imagesStr);
   };
+
+  if (loading) {
+    return <AdminTableSkeleton rows={6} />;
+  }
 
   return (
     <div>

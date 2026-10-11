@@ -1,53 +1,83 @@
 import React from 'react';
+import SkeletonBox from '@/components/ui/skeletons/SkeletonBox';
+import ProductCardSkeleton from '@/components/ui/skeletons/ProductCardSkeleton';
 
-export default function Loading() {
+export default function HomeLoading() {
   return (
-    <div style={{ padding: '32px 0 64px', minHeight: '60vh' }}>
+    <div style={{ padding: '32px 0 64px', minHeight: '80vh' }}>
       <div className="container">
-        {/* Top Hero Banner Skeleton */}
+        {/* 1. Hero Banner Skeleton */}
         <div
           style={{
-            height: '240px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'linear-gradient(90deg, #f0eae6 25%, #f9f5f3 50%, #f0eae6 75%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s infinite',
-            marginBottom: '40px',
+            height: '380px',
+            borderRadius: 'var(--radius-xl, 28px)',
+            marginBottom: '48px',
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 0.8fr',
+            padding: '48px',
+            gap: '32px',
+            background: 'linear-gradient(135deg, #fff0f3 0%, #fff6f0 50%, #ffe4e6 100%)',
           }}
-        />
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '16px' }}>
+            <SkeletonBox width="140px" height="24px" borderRadius="12px" />
+            <SkeletonBox width="90%" height="42px" />
+            <SkeletonBox width="70%" height="42px" />
+            <SkeletonBox width="80%" height="16px" style={{ marginTop: '8px' }} />
+            <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+              <SkeletonBox width="140px" height="46px" borderRadius="var(--radius-full, 999px)" />
+              <SkeletonBox width="140px" height="46px" borderRadius="var(--radius-full, 999px)" />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <SkeletonBox width="85%" height="280px" borderRadius="20px" />
+          </div>
+        </div>
 
-        {/* Section Header Skeleton */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div>
-            <div
-              style={{
-                width: '120px',
-                height: '14px',
-                borderRadius: 'var(--radius-sm)',
-                background: '#f0eae6',
-                marginBottom: '8px',
-              }}
-            />
-            <div
-              style={{
-                width: '260px',
-                height: '28px',
-                borderRadius: 'var(--radius-sm)',
-                background: '#e8e2de',
-              }}
-            />
+        {/* 2. Category Circles/Cards Skeleton */}
+        <div style={{ marginBottom: '56px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <SkeletonBox width="120px" height="14px" style={{ margin: '0 auto 8px' }} />
+            <SkeletonBox width="240px" height="26px" style={{ margin: '0 auto' }} />
           </div>
           <div
             style={{
-              width: '80px',
-              height: '18px',
-              borderRadius: 'var(--radius-sm)',
-              background: '#f0eae6',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '16px',
             }}
-          />
+          >
+            {[1, 2, 3, 4, 5, 6].map((cat) => (
+              <div
+                key={cat}
+                style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  padding: '20px 12px',
+                  border: '1px solid var(--color-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <SkeletonBox width="54px" height="54px" borderRadius="50%" />
+                <SkeletonBox width="80px" height="14px" />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Product Cards Grid Skeleton */}
+        {/* 3. Best Sellers Section Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <SkeletonBox width="120px" height="14px" />
+            <SkeletonBox width="260px" height="26px" />
+          </div>
+          <SkeletonBox width="100px" height="20px" />
+        </div>
+
+        {/* 4. Best Sellers Product Grid Skeleton */}
         <div
           style={{
             display: 'grid',
@@ -55,59 +85,8 @@ export default function Loading() {
             gap: '24px',
           }}
         >
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div
-              key={i}
-              style={{
-                background: 'white',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              {/* Image Skeleton */}
-              <div
-                style={{
-                  width: '100%',
-                  paddingTop: '100%',
-                  background: 'linear-gradient(90deg, #f0eae6 25%, #f9f5f3 50%, #f0eae6 75%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 1.5s infinite',
-                }}
-              />
-
-              {/* Text Skeleton */}
-              <div style={{ padding: '16px' }}>
-                <div
-                  style={{
-                    width: '60px',
-                    height: '12px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: '#f0eae6',
-                    marginBottom: '8px',
-                  }}
-                />
-                <div
-                  style={{
-                    width: '90%',
-                    height: '16px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: '#e8e2de',
-                    marginBottom: '12px',
-                  }}
-                />
-                <div
-                  style={{
-                    width: '50%',
-                    height: '18px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: '#ffccd4',
-                  }}
-                />
-              </div>
-            </div>
+          {[1, 2, 3, 4].map((i) => (
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       </div>
