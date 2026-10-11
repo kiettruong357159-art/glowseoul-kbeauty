@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Search, X, Check } from 'lucide-react';
 
 export interface SelectOption {
@@ -36,15 +37,57 @@ export default function CustomSelect({
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number; openUp: boolean } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Close on outside click
+  // Tính vị trí menu theo trigger (position: fixed) để không bị cắt bởi overflow của bảng/modal
+  const updateMenuPosition = useCallback(() => {
+    const trigger = containerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = Math.max(rect.width, 220);
+    const estimatedHeight = Math.min(options.length * 38 + (enableSearch ? 46 : 0) + 12, 290);
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < estimatedHeight + 8 && rect.top > spaceBelow;
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+    setMenuPos({
+      top: openUp ? rect.top - 4 : rect.bottom + 4,
+      left,
+      width: menuWidth,
+      openUp,
+    });
+  }, [options.length, enableSearch]);
+
+  useLayoutEffect(() => {
+    if (isOpen) updateMenuPosition();
+  }, [isOpen, updateMenuPosition]);
+
+  // Reposition on scroll/resize
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleReposition = (event: Event) => {
+      if (menuRef.current && event.target instanceof Node && menuRef.current.contains(event.target)) return;
+      updateMenuPosition();
+    };
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
+    return () => {
+      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener('resize', handleReposition);
+    };
+  }, [isOpen, updateMenuPosition]);
+
+  // Close on outside click (trigger + portal menu)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inTrigger = containerRef.current && containerRef.current.contains(target);
+      const inMenu = menuRef.current && menuRef.current.contains(target);
+      if (!inTrigger && !inMenu) {
         setIsOpen(false);
         setSearchTerm('');
       }
@@ -63,7 +106,7 @@ export default function CustomSelect({
     if (isOpen && enableSearch && searchInputRef.current) {
       searchInputRef.current.focus();
     }
-  }, [isOpen, enableSearch]);
+  }, [isOpen, enableSearch, menuPos]);
 
   // Filter options based on search query
   const filteredOptions = options.filter((opt) => {
@@ -164,20 +207,22 @@ export default function CustomSelect({
         />
       </button>
 
-      {/* Dropdown Menu (Select2 Style) */}
-      {isOpen && (
+      {/* Dropdown Menu (Select2 Style) - render qua portal để không bị overflow cắt */}
+      {isOpen && menuPos && typeof document !== 'undefined' && createPortal(
         <div
+          ref={menuRef}
+          onKeyDown={handleKeyDown}
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            minWidth: '220px',
+            position: 'fixed',
+            top: menuPos.top,
+            left: menuPos.left,
+            width: menuPos.width,
+            transform: menuPos.openUp ? 'translateY(-100%)' : 'none',
             background: 'white',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--color-border)',
             boxShadow: 'var(--shadow-lg)',
-            zIndex: 100,
+            zIndex: 10000,
             overflow: 'hidden',
             animation: 'fadeIn 0.15s ease-out',
           }}
@@ -331,7 +376,8 @@ export default function CustomSelect({
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
