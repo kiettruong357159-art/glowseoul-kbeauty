@@ -147,6 +147,56 @@
 * Pre-push hook chạy đủ: rules -> types -> test -> build. Test fail là push bị hủy; không được bypass bằng `--no-verify`, phải sửa nguyên nhân rồi push lại.
 * Trên Windows PowerShell cũ không hỗ trợ `&&`; nối lệnh git bằng `;`.
 
+### 11. Pipeline Chất lượng 3 Lớp (Local Hook -> GitHub CI -> Vercel Deploy)
+
+> **Đúc kết từ thực tế**: Quy tắc chỉ nằm trong tài liệu thì sẽ bị quên. Phải biến thành cổng kiểm tra tự động ngay từ ngày đầu dự án.
+
+```text
+[Lớp 1: Git pre-push hook (máy dev)]  -> rules -> types -> test -> build. Fail = không push được.
+[Lớp 2: GitHub Actions (ci.yml)]       -> chạy lại đúng 4 bước trên ubuntu, bắt lỗi khi hook bị bỏ qua.
+[Lớp 3: Vercel (auto deploy main)]     -> build production. Chỉ push main khi lớp 1 và 2 đã xanh.
+```
+
+* **Lớp 1 – Hook**: `scripts/setup-hooks.ts` ghi `.git/hooks/pre-push` (chạy qua `npm run prepare:hooks` / `postinstall`) để mọi thành viên đều có hook. Script `npm run verify` = `check:rules` + `check:types` + `npm test`; `npm run pre-push` = `verify` + `build`.
+* **Lớp 2 – CI**: `.github/workflows/ci.yml` chạy trên `push` và `pull_request` vào `main`/`develop`: `npm ci` -> `npx prisma generate` -> 4 gateway (rules, types, test, build). Đặt tên step theo dạng `[Gateway n/4]` để nhìn log biết ngay bước nào đỏ.
+* **Vercel không phụ thuộc CI**: push `main` là tự deploy, kể cả khi CI đỏ. Vì vậy quy trình bắt buộc: làm trên `develop` -> hook xanh -> CI xanh -> merge vào `main`.
+* **`scripts/verify-code-rules.ts` là nơi biến rule thành code**: kiểm tra `debugger`, `console.log` trong `src/`, tiền tố `_` giả lập biến không dùng, hàm rỗng... Mỗi rule mới được thống nhất phải thêm vào script này và có test song hành (`tests/code-rules-pipeline.test.ts`).
+* **Bật `noUnusedLocals` + `noUnusedParameters`** ngay từ đầu. Bật muộn sẽ phải sửa hàng chục file cùng lúc (thực tế phải dọn 35 file trong 1 commit).
+* **Không chạy `npm run dev` khi đang build/push**: dev server giữ file Prisma query engine, bước `prisma generate` trong build báo `EPERM: operation not permitted, rename ...query_engine-windows.dll.node`. Tắt dev server rồi push lại.
+* **Không bao giờ `--no-verify`**. Hook đỏ là tín hiệu, phải sửa nguyên nhân.
+
+### 12. Kỷ luật Xác thực Session Cookie trong API & Server Component
+* Helper lấy user từ cookie (`getCurrentUserFromCookie`) phải hỗ trợ **2 nguồn**: header `Cookie` của `Request` (API route) và `cookies()` của `next/headers` (Server Component, Server Action) khi không truyền header. Chỉ hỗ trợ 1 nguồn sẽ gây lỗi 401 giả ở wishlist/account dù đã đăng nhập.
+* `cookies()` của Next 15 là **async**: phải `await`, và bọc `try/catch` vì ngoài request scope sẽ ném lỗi.
+* Client phải **chờ `authLoading` xong** rồi mới quyết định "chưa đăng nhập" (`if (authLoading) return;`), tránh báo "Vui lòng đăng nhập" trong lúc session đang tải.
+* Khi API trả `401`, hiển thị thông báo riêng "Phiên đăng nhập đã hết hạn", không dùng chung thông báo lỗi chung.
+* **Chặn truy cập ở tầng Edge Middleware** cho `/admin`, `/account` (redirect trước khi render) kết hợp guard phía client; chỉ guard client sẽ bị nháy giao diện admin trước khi chuyển về login.
+* Test API xác thực phải đi qua đường cookie thật (không chỉ truyền user giả) để bắt được lỗi này.
+
+### 13. Lỗi chỉ lộ trên Vercel (Build Production nghiêm hơn Dev)
+* Mảng khởi tạo rỗng (`const items = []`) rồi `push` có thể bị suy ra `any[]`/`never[]` và **chỉ vỡ khi build production**. Luôn khai báo kiểu tường minh (`const items: { productId: string; ... }[] = []`).
+* Trường tùy chọn đưa vào Prisma phải chuẩn hóa giá trị mặc định (`image: item.image || ''`) cho khớp kiểu cột bắt buộc.
+* Quy tắc vàng: **luôn chạy `npm run build` cục bộ trước khi merge `main`**, không chỉ `npm run dev`. Hook pre-push đã tự làm việc này.
+
+### 14. Kỷ luật Hiệu năng API (Aggregate tại DB, Batch, Transaction)
+* **Dashboard/thống kê KHÔNG được `findMany()` cả bảng rồi `reduce/filter` trong RAM.** Dùng `prisma.<model>.aggregate` (`_sum`, `_count`), `count({ where })`, `groupBy`, và danh sách gần đây chỉ `take: 5`. Bản cũ tải toàn bộ `order` + `orderItem` -> chậm tuyến tính theo dữ liệu.
+* Gom các truy vấn độc lập vào **một `Promise.all`** thay vì `await` tuần tự.
+* **Chống N+1**: không `findUnique` trong vòng `for`. Gom id (`Array.from(new Set(ids))`), gọi 1 lần `findMany({ where: { id: { in: ids } } })`, rồi tra bằng `Map`.
+* Luồng tạo đơn: giá luôn lấy từ DB (không tin giá client), và gói **tạo đơn + cập nhật `soldQuantity` Flash Sale trong cùng `prisma.$transaction`** để không bị lệch số liệu khi một bước lỗi.
+* **Tuyệt đối không bịa số liệu hiển thị** (VD doanh thu danh mục = `số sản phẩm * 320000`, biểu đồ 7 ngày nhân hệ số cố định). Số giả chỉ được phép khi gắn nhãn rõ "dữ liệu mẫu"; còn lại phải tính thật từ DB (`groupBy` trên `orderItem`).
+* Mọi tối ưu hiệu năng phải có test song hành (`admin-dashboard-aggregation`, `order-performance-batch`) để không bị hồi quy.
+
+### 15. Bảo vệ Route Admin: Middleware Edge là hàng rào UX, không phải bảo mật
+* Edge runtime không có `crypto` của Node nên middleware chỉ **giải mã payload (`atob`) để kiểm tra có cookie, chưa hết hạn, đúng role** rồi redirect sớm. Nó **không xác minh chữ ký** token.
+* Vì vậy **quyền thật luôn phải kiểm tra lại ở từng API** bằng `getCurrentUserFromCookie` + role. Không coi middleware là lớp bảo mật duy nhất.
+* Redirect kèm `?redirect=<đường dẫn cũ>` để login xong quay lại đúng trang; user đã đăng nhập mà vào `/admin/login` thì redirect về `/admin`; `matcher` chỉ `['/admin/:path*']`.
+* Phía client dùng `router.replace` (không `push`, tránh nút Back quay lại trang vừa bị chặn) và **trả về màn hình "Đang kiểm tra quyền truy cập..." khi `authLoading || !user || sai role`** để không nháy nội dung quản trị.
+
+### 16. Chuẩn hóa UI Admin theo Component Mẫu (Golden Reference)
+* Chọn **một màn hình làm chuẩn** (ở đây `ProductListTable`) cho layout: thanh tìm kiếm + bộ lọc, bảng, phân trang, badge trạng thái, modal. Mọi Manager mới/sửa (Flash Sale, Review, Banner, User...) phải **giống chuẩn đó**; lệch format là lỗi cần sửa ngay, không để mỗi tab một kiểu.
+* Quy tắc dọn UI: một hành động chỉ xuất hiện **một chỗ** (VD bỏ nút Đăng xuất trùng ở banner hồ sơ, giữ nút ở vị trí chuẩn); chỉ hiện nút theo role (nút "Trang Quản Trị" chỉ cho `ADMIN`/`STAFF`).
+* Khi sửa UI hàng loạt, vẫn giữ nguyên chuỗi/ID mà contract test đang kiểm tra, rồi chạy lại `npm test`.
+
 ---
 
 ## 🚀 PHẦN II: HẠ TẦNG CLOUD SERVERLESS & EDGE (MODERN INFRASTRUCTURE)
@@ -815,3 +865,10 @@ Khi sao chép file này sang dự án mới làm CORE:
 - [ ] 12. Admin nhiều tab: đồng bộ `?tab=` lên URL (F5 không mất tab), Lazy-Mount + Keep-Alive, Parent tải 1 lần rồi truyền `initialX` cho Child (`undefined` = chưa tải, `[]` = rỗng), nút "Làm mới" trên header, badge đồng nhất.
 - [ ] 13. Dropdown/popover trong bảng & modal render qua Portal + `position: fixed` + `z-index` cao hơn modal.
 - [ ] 14. Trước khi báo xong, kiểm tra tab Network: sau F5 mỗi API chỉ 1 lần, bấm menu không phát sinh request mới.
+- [ ] 15. Dựng **pipeline 3 lớp ngay ngày đầu**: `scripts/verify-code-rules.ts`, `scripts/setup-hooks.ts` (pre-push), `.github/workflows/ci.yml` (4 gateway), bật `noUnusedLocals`/`noUnusedParameters`.
+- [ ] 16. Quy trình nhánh: làm trên `develop`, chỉ merge/push `main` khi hook + CI xanh (Vercel deploy `main` tự động, không chờ CI). Tắt `npm run dev` trước khi push.
+- [ ] 17. Helper session cookie hỗ trợ cả `Cookie` header lẫn `next/headers`; client chờ `authLoading`; xử lý riêng lỗi 401.
+- [ ] 18. Khai báo kiểu tường minh cho mảng rỗng được `push` sau đó (tránh lỗi chỉ xuất hiện khi build Vercel).
+- [ ] 19. Thống kê/dashboard dùng `aggregate`/`count`/`groupBy` + `Promise.all`; chống N+1 bằng `findMany({ in })` + `Map`; tuyệt đối không bịa số liệu hiển thị.
+- [ ] 20. Middleware Edge chỉ là hàng rào UX (không verify chữ ký); mọi API vẫn tự kiểm tra role. Client dùng `router.replace` + màn hình "đang kiểm tra quyền".
+- [ ] 21. Chọn 1 màn hình admin làm chuẩn (golden reference); mọi Manager khác phải cùng format, một hành động chỉ xuất hiện một chỗ.

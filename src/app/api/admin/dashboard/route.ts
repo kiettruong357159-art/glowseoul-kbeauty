@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
+const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+interface CategoryRevenueRow {
+  category: string;
+  count: number;
+  revenue: number;
+}
+
+interface DailyRevenueRow {
+  day: string;
+  revenue: number;
+  ordersCount: number;
+}
+
 export async function GET() {
   try {
     const categoryNames: Record<string, string> = {
@@ -13,6 +29,12 @@ export async function GET() {
       other: 'Khác',
     };
 
+    // Mốc 7 ngày gần nhất theo múi giờ Việt Nam (UTC+7), gồm cả hôm nay
+    const vnToday = new Date(Date.now() + VN_OFFSET_MS);
+    const vnTodayStartUtc =
+      Date.UTC(vnToday.getUTCFullYear(), vnToday.getUTCMonth(), vnToday.getUTCDate()) - VN_OFFSET_MS;
+    const trendSince = new Date(vnTodayStartUtc - 6 * DAY_MS);
+
     // 1. High-Performance Database Aggregations for Financial KPIs (No full-table loading into RAM)
     const [
       revenueAgg,
@@ -22,7 +44,8 @@ export async function GET() {
       lowStockCount,
       productCount,
       recentOrders,
-      categoryGroups,
+      categoryRows,
+      dailyRows,
     ] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
@@ -39,34 +62,51 @@ export async function GET() {
         orderBy: { createdAt: 'desc' },
         include: { items: true },
       }),
-      prisma.product.groupBy({
-        by: ['category'],
-        _count: { id: true },
-      }),
+      prisma.$queryRaw<CategoryRevenueRow[]>`
+        SELECT p."category" AS category,
+               COALESCE(SUM(oi."quantity"), 0)::float8 AS count,
+               COALESCE(SUM(oi."price" * oi."quantity"), 0)::float8 AS revenue
+        FROM "OrderItem" oi
+        JOIN "Product" p ON p."id" = oi."productId"
+        JOIN "Order" o ON o."id" = oi."orderId"
+        WHERE o."orderStatus" <> 'cancelled'
+        GROUP BY p."category"
+        ORDER BY revenue DESC
+      `,
+      prisma.$queryRaw<DailyRevenueRow[]>`
+        SELECT to_char(o."createdAt" AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD') AS day,
+               COALESCE(SUM(o."totalAmount"), 0)::float8 AS revenue,
+               COUNT(*)::float8 AS "ordersCount"
+        FROM "Order" o
+        WHERE o."orderStatus" <> 'cancelled' AND o."createdAt" >= ${trendSince}
+        GROUP BY 1
+      `,
     ]);
 
     const totalRevenue = revenueAgg._sum.totalAmount || 0;
     const validOrdersCount = revenueAgg._count.id || 0;
     const averageOrderValue = validOrdersCount > 0 ? Math.round(totalRevenue / validOrdersCount) : 0;
 
-    const categoryBreakdown = categoryGroups.map((group) => ({
-      category: group.category,
-      name: categoryNames[group.category] || group.category,
-      count: group._count.id,
-      revenue: group._count.id * 320000,
+    // Doanh thu danh mục tính thật từ OrderItem (không tính đơn đã hủy)
+    const categoryBreakdown = categoryRows.map((row) => ({
+      category: row.category,
+      name: categoryNames[row.category] || row.category,
+      count: Number(row.count),
+      revenue: Number(row.revenue),
     }));
 
-    // 7-day revenue trend simulation / real grouping
-    const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-    const revenueTrend = days.map((day, idx) => {
-      const base = totalRevenue > 0 ? Math.round(totalRevenue / 7) : 1250000;
-      const factor = [0.8, 1.1, 0.9, 1.3, 1.5, 1.8, 1.4][idx];
-      return {
-        day,
-        revenue: Math.round(base * factor),
-        ordersCount: Math.round(factor * 3) + 1,
-      };
-    });
+    // Xu hướng 7 ngày: ngày không có đơn hiển thị 0
+    const dailyMap = new Map(dailyRows.map((row) => [row.day, row]));
+    const revenueTrend: { day: string; revenue: number; ordersCount: number }[] = [];
+    for (let offset = 0; offset < 7; offset++) {
+      const dayStart = new Date(vnTodayStartUtc - (6 - offset) * DAY_MS + VN_OFFSET_MS);
+      const row = dailyMap.get(dayStart.toISOString().slice(0, 10));
+      revenueTrend.push({
+        day: WEEKDAY_LABELS[dayStart.getUTCDay()],
+        revenue: row ? Number(row.revenue) : 0,
+        ordersCount: row ? Number(row.ordersCount) : 0,
+      });
+    }
 
     return NextResponse.json({
       stats: {
