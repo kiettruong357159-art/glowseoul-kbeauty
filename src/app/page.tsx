@@ -27,7 +27,7 @@ export default async function HomePage() {
     skinType: true,
   };
 
-  const [bestSellers, newArrivals] = await Promise.all([
+  const [bestSellers, newArrivals, heroBanner] = await Promise.all([
     prisma.product.findMany({
       where: { isBestSeller: true },
       take: 8,
@@ -38,12 +38,19 @@ export default async function HomePage() {
       take: 4,
       select: productCardSelect,
     }),
+    prisma.banner.findFirst({
+      where: { type: 'hero', isActive: true },
+    }),
   ]);
 
   return (
     <div>
       {/* Hero Banner Section */}
-      <HeroBanner />
+      <HeroBanner
+        badgeText={heroBanner?.badgeText || undefined}
+        title={heroBanner?.title || undefined}
+        subtitle={heroBanner?.subtitle || undefined}
+      />
 
       {/* Real-time Flash Sale Countdown Section */}
       <FlashSaleSection />

@@ -21,10 +21,15 @@ import MobileNavDrawer from './MobileNavDrawer';
 
 export default function Header() {
   const { totalItems, setIsCartOpen } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -380,7 +385,16 @@ export default function Header() {
           {/* Right Action Icons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* User Account / Login Dropdown */}
-            {user ? (
+            {!mounted || (loading && !user) ? (
+              <div
+                style={{
+                  width: '106px',
+                  height: '36px',
+                  borderRadius: 'var(--radius-full)',
+                  background: 'rgba(0, 0, 0, 0.04)',
+                }}
+              />
+            ) : user ? (
               <div className="user-dropdown-container" style={{ position: 'relative' }}>
                 <button
                   type="button"

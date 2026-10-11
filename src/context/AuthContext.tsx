@@ -32,20 +32,39 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('glowseoul_user');
+        return cached ? JSON.parse(cached) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', { cache: 'no-store' });
       const data = await res.json();
       if (res.ok && data.authenticated && data.user) {
         setUser(data.user);
+        try {
+          localStorage.setItem('glowseoul_user', JSON.stringify(data.user));
+        } catch {}
       } else {
         setUser(null);
+        try {
+          localStorage.removeItem('glowseoul_user');
+        } catch {}
       }
     } catch {
       setUser(null);
+      try {
+        localStorage.removeItem('glowseoul_user');
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -69,6 +88,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(data.user);
+      try {
+        localStorage.setItem('glowseoul_user', JSON.stringify(data.user));
+      } catch {}
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Lỗi kết nối máy chủ' };
@@ -82,6 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ignore
     } finally {
       setUser(null);
+      try {
+        localStorage.removeItem('glowseoul_user');
+      } catch {}
     }
   };
 

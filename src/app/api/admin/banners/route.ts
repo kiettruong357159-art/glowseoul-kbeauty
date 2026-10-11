@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromCookie } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const banners = await prisma.banner.findMany({
       orderBy: { createdAt: 'asc' },
     });
-    return NextResponse.json({ banners });
+    return NextResponse.json(
+      { banners },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching banners:', error);
     return NextResponse.json({ error: 'Không thể tải danh sách banner' }, { status: 500 });

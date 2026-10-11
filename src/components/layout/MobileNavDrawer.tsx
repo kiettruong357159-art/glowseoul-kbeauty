@@ -22,7 +22,7 @@ const CATEGORY_LINKS = [
 ];
 
 export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
 
   if (!isOpen) return null;
 
@@ -110,7 +110,15 @@ export default function MobileNavDrawer({ isOpen, onClose }: MobileNavDrawerProp
 
         {/* User Account Section */}
         <div style={{ padding: '14px 20px', background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)' }}>
-          {user ? (
+          {loading && !user ? (
+            <div
+              style={{
+                height: '42px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(0, 0, 0, 0.04)',
+              }}
+            />
+          ) : user ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Link
                 href="/account"
