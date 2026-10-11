@@ -111,6 +111,42 @@
 * **Tự động hóa qua Pre-push Verification**:
   - Bộ kiểm tra `scripts/verify-code-rules.ts` kết hợp với `npx tsc --noEmit` được tự động chạy trước mỗi lệnh `git push` qua Git Hook để đảm bảo 100% không có dead code lọt vào repository.
 
+### 8. Kỷ luật Admin Dashboard dạng SPA nhiều Tab (Tab State, Data Reuse & No Duplicate Fetch)
+
+> **Đúc kết từ thực tế**: Admin dạng 1 trang nhiều tab (`/admin`) rất dễ mắc 4 lỗi: F5 mất tab, mỗi lần bấm menu lại gọi API, gọi API 2 lần cho cùng 1 dữ liệu, dropdown trong bảng bị cắt.
+
+* **Tab phải đồng bộ lên URL (F5 không được mất tab)**:
+  - `activeTab` không được chỉ nằm trong `useState`. Khi đổi tab, ghi `?tab=<id>` lên URL bằng `window.history.replaceState` (không reload, không thêm history entry), đồng thời lưu `localStorage`.
+  - Khi mount, đọc lại `?tab=` (ưu tiên) rồi đến `localStorage`, và **phải validate** giá trị nằm trong danh sách tab hợp lệ trước khi dùng.
+  - Mọi nơi chuyển tab (sidebar, nút "Xem tất cả" ở Dashboard...) đều phải gọi **cùng một hàm** `handleSelectTab`, không gọi trực tiếp `setActiveTab`.
+* **Lazy-Mount + Keep-Alive để chuyển tab 0ms**:
+  - Chỉ mount tab lần đầu khi người dùng mở (`visitedTabs[tab] && ...`), sau đó ẩn/hiện bằng `display: none/block`. Không unmount để giữ scroll, filter, trang đang xem, form nhập dở.
+  - Giữ nguyên chuỗi `activeTab === '<id>'` trong JSX để các contract test vẫn qua.
+* **Một dữ liệu – một lần gọi API (Parent tải, Child tái sử dụng)**:
+  - Parent đã gọi API để đếm badge sidebar thì **phải giữ lại dữ liệu và truyền xuống Child** qua props (`initialX`), không được chỉ lấy `.length` rồi bỏ.
+  - Child nhận `initialX !== undefined` thì hiển thị ngay và **bỏ qua fetch**; chỉ fetch khi `initialX === undefined`.
+  - **Phân biệt rạch ròi "chưa tải" (`undefined`) với "đã tải nhưng rỗng" (`[]`)**. TUYỆT ĐỐI cấm kiểm tra `initialX.length > 0` để quyết định có fetch hay không, vì bảng rỗng hợp lệ (VD: Flash Sale = 0) sẽ bị gọi API lại mỗi lần mở tab. State cache ở Parent khởi tạo là `undefined`, không phải `[]`.
+  - Child đồng bộ từ props mỗi khi props đổi (sau CRUD / nút Làm mới), **không dùng cờ `hasInitialized`** vì sẽ kích hoạt fetch lại khi props cập nhật. Chỉ fetch thật sự khi đổi filter/tìm kiếm/phân trang (điều kiện cần dữ liệu mới theo tham số).
+  - Sau mỗi mutation (thêm/sửa/xóa) Child gọi `onRefreshCounts?.()` để Parent đồng bộ lại badge + cache.
+* **Dữ liệu luôn mới nhất khi cần (SWR thủ công)**: Header admin luôn có nút **"Làm mới"** (`isRefreshing`, disabled khi đang chạy) đồng bộ lại toàn bộ master data + đơn hàng bằng 1 click, không cần F5.
+* **Badge đồng nhất**: Mọi mục menu có dữ liệu dạng danh sách đều phải có badge đếm; không để mục thì có mục thì không.
+* **Tắt prefetch thừa**: `<Link>` tới route nặng hoặc route đã nằm trong SPA (logo `/admin` trong sidebar) đặt `prefetch={false}` để tránh request `?_rsc=` không cần thiết.
+* **Kiểm tra bằng DevTools trước khi báo xong**: F5 -> mở Network (Fetch/XHR) -> bấm qua từng tab. Phải đạt: mỗi endpoint chỉ xuất hiện **1 lần sau F5**, bấm menu **0 request mới**.
+
+### 9. Kỷ luật UI Overlay (Dropdown / Popover / Tooltip trong Bảng & Modal)
+* **Overlay KHÔNG được dùng `position: absolute` bên trong container có `overflow`** (bảng cuộn ngang, card `overflow: hidden`, modal cuộn) vì sẽ bị cắt mất phần tràn.
+* **Chuẩn bắt buộc**: render menu qua **React Portal ra `document.body`** (`createPortal`), định vị `position: fixed` theo `getBoundingClientRect()` của nút kích hoạt.
+  - Tự lật lên trên (`openUp`) khi không đủ chỗ phía dưới viewport; kẹp `left` trong màn hình.
+  - Tính lại vị trí khi `scroll` (capture `true`) và `resize`; bỏ qua scroll xảy ra bên trong chính menu.
+  - "Click ra ngoài để đóng" phải kiểm tra **cả trigger lẫn menu portal** (menu không còn nằm trong DOM của trigger).
+  - `z-index` của overlay phải **cao hơn mọi modal/toast** của dự án (VD modal tối đa 9999 -> overlay 10000) để dropdown trong form modal vẫn hiển thị.
+* Sửa **một lần tại component dùng chung** (`CustomSelect`), không vá từng màn hình.
+
+### 10. Kỷ luật Test & Pre-push Ổn định (No Flaky Cleanup)
+* Test chạy song song (Vitest) cùng dùng chung 1 DB có thể xoá đè nhau. Bước **dọn dẹp test data bắt buộc dùng `deleteMany({ where })`** (idempotent, không ném lỗi khi bản ghi đã bị xoá), không dùng `delete({ where: { id } })`.
+* Pre-push hook chạy đủ: rules -> types -> test -> build. Test fail là push bị hủy; không được bypass bằng `--no-verify`, phải sửa nguyên nhân rồi push lại.
+* Trên Windows PowerShell cũ không hỗ trợ `&&`; nối lệnh git bằng `;`.
+
 ---
 
 ## 🚀 PHẦN II: HẠ TẦNG CLOUD SERVERLESS & EDGE (MODERN INFRASTRUCTURE)
@@ -576,6 +612,7 @@ export type CreateProductInput = z.infer<typeof CreateProductSchema>;
   - Tích hợp ô lọc tìm kiếm tức thì.
   - Đóng khi click ngoài (backdrop) hoặc nhấn phím `Escape`.
   - Không render hàng ngàn `<option>` trực tiếp vào DOM.
+  - **Menu render qua Portal (`document.body`) + `position: fixed`** để không bị cắt bởi `overflow` của bảng/modal, tự lật lên khi thiếu chỗ (xem Mục 9, Phần I).
 * **Bảng dữ liệu & Phân trang (`Pagination`)**:
   - Luôn đi kèm hiển thị: `Trang X / Y`, `Tổng Z mục`, nút Trước/Sau và danh sách số trang có dấu chấm lửng `...`.
 * **Ảnh an toàn có Fallback (`SafeImage` / `placeholder-product.svg`)**:
@@ -774,4 +811,7 @@ Khi sao chép file này sang dự án mới làm CORE:
 - [ ] 8. Áp dụng chốt chặn Anti-double submit và loading spinner cho tất cả các nút Form/Action.
 - [ ] 9. Đảm bảo mọi câu query bảng lớn đều có `take`, `skip` và đánh Composite Index.
 - [ ] 10. Bọc các mutation thay đổi từ 2 bảng trở lên bằng `prisma.$transaction`.
-- [ ] 11. Viết test case Vitest song hành cho các module nghiệp vụ và API quan trọng.
+- [ ] 11. Viết test case Vitest song hành cho các module nghiệp vụ và API quan trọng; dọn test data bằng `deleteMany`.
+- [ ] 12. Admin nhiều tab: đồng bộ `?tab=` lên URL (F5 không mất tab), Lazy-Mount + Keep-Alive, Parent tải 1 lần rồi truyền `initialX` cho Child (`undefined` = chưa tải, `[]` = rỗng), nút "Làm mới" trên header, badge đồng nhất.
+- [ ] 13. Dropdown/popover trong bảng & modal render qua Portal + `position: fixed` + `z-index` cao hơn modal.
+- [ ] 14. Trước khi báo xong, kiểm tra tab Network: sau F5 mỗi API chỉ 1 lần, bấm menu không phát sinh request mới.
