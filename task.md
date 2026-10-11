@@ -85,4 +85,14 @@
   - [x] Cập nhật test suite `tests/code-rules-pipeline.test.ts`
   - [x] Kiểm thử toàn diện 52 test suites (156 tests passed) và deploy Vercel Production
 
+- [x] **Giai Đoạn 11: Loại Bỏ Toàn Bộ Dữ Liệu Mẫu (Mock / Hardcoded) Khỏi Storefront & Kết Nối Database**
+  - [x] Xóa bỏ 3 dòng văn bản mẫu tĩnh trong `PromoBar.tsx` (Freeship toàn quốc..., Nhập KBEAUTY10..., 100% Mỹ phẩm...)
+  - [x] Truy vấn banner promo_bar từ Prisma DB trong `src/app/layout.tsx` (SSR) và truyền qua `StorefrontLayout`
+  - [x] Thay thế mảng mẫu tĩnh trong `CategoryGrid.tsx` bằng dữ liệu danh mục và đếm sản phẩm thực từ Prisma
+  - [x] Thay thế mảng thương hiệu mẫu tĩnh trong `BrandShowcase.tsx` bằng danh sách thương hiệu từ Prisma
+  - [x] Thay thế sản phẩm giả trên Floating Card của `HeroBanner.tsx` bằng sản phẩm bán chạy top 1 và ảnh banner từ DB
+  - [x] Nạp đồng thời toàn bộ dữ liệu trang chủ qua `Promise.all` trong `src/app/page.tsx`
+  - [x] Kiểm thử 52/52 test suites (156/156 tests passed) và compile Next.js production build thành công
+
+
 
