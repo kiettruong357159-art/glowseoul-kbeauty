@@ -20,9 +20,9 @@
   - [x] Viết unit test `tests/admin-dashboard-aggregation.test.ts` kiểm tra tính chính xác và tốc độ của aggregation
   - [x] Chạy `npm test` toàn bộ 49 test suites (132/132 tests passed)
 
-- [ ] **Giai Đoạn 5: Triển khai Vercel Production**
+- [x] **Giai Đoạn 5: Triển khai Vercel Production**
   - [x] Khắc phục lỗi TypeScript `orderItemsData` tại `src/app/api/orders/route.ts` gây lỗi build Vercel
   - [x] Chạy verify `npm run build` cục bộ thành công 100% (30/30 routes)
   - [x] Chạy toàn bộ 49 test suites (132/132 tests passed)
-  - [ ] Push commit lên Git và kích hoạt Vercel build
-  - [ ] Nghiệm thu Vercel deployment trạng thái READY và URL hoạt động
+  - [x] Push commit lên Git và kích hoạt Vercel build
+  - [x] Nghiệm thu Vercel deployment trạng thái READY và URL hoạt động (`https://glowseoul-kbeauty.vercel.app`)
