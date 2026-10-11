@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   ShoppingBag,
   Sparkles,
-  Search,
   Menu,
   User as UserIcon,
   LogOut,
@@ -25,12 +24,16 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest('.product-dropdown-container')) {
         setIsProductMenuOpen(false);
+      }
+      if (!target.closest('.user-dropdown-container')) {
+        setIsUserMenuOpen(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -376,125 +379,252 @@ export default function Header() {
 
           {/* Right Action Icons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Link
-              href="/products"
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-main)',
-                transition: 'all 0.2s',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-              title="Tìm kiếm sản phẩm"
-            >
-              <Search size={17} />
-            </Link>
-
-            {/* User Account / Login */}
+            {/* User Account / Login Dropdown */}
             {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {(user.role === 'ADMIN' || user.role === 'STAFF') && (
-                  <Link
-                    href="/admin"
-                    className="hide-on-mobile"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      color: '#4f46e5',
-                      background: '#e0e7ff',
-                      padding: '6px 12px',
-                      borderRadius: 'var(--radius-full)',
-                      textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    title="Đi đến trang Quản trị"
-                  >
-                    <Shield size={13} />
-                    <span>Quản trị</span>
-                  </Link>
-                )}
-                <div
+              <div className="user-dropdown-container" style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    background: 'var(--color-surface)',
-                    padding: '4px 10px 4px 6px',
+                    gap: '8px',
+                    background: isUserMenuOpen ? 'var(--color-primary-light)' : 'var(--color-surface)',
+                    padding: '4px 12px 4px 6px',
                     borderRadius: 'var(--radius-full)',
-                    border: '1px solid var(--color-border)',
+                    border: isUserMenuOpen ? '1px solid rgba(255, 107, 129, 0.4)' : '1px solid var(--color-border)',
                     boxShadow: 'var(--shadow-sm)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    color: 'var(--color-text-main)',
                   }}
+                  title="Menu tài khoản"
+                  aria-expanded={isUserMenuOpen}
                 >
-                  <Link
-                    href="/account"
-                    title="Trang tài khoản của tôi"
+                  <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      textDecoration: 'none',
-                      color: 'inherit',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '50%',
-                        background: 'var(--color-gradient-brand)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        boxShadow: '0 2px 6px rgba(255, 107, 129, 0.3)',
-                      }}
-                    >
-                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <span
-                      className="hide-on-mobile"
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        maxWidth: '90px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {user.name}
-                    </span>
-                  </Link>
-                  <button
-                    onClick={logout}
-                    title="Đăng xuất"
-                    style={{
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '50%',
+                      background: 'var(--color-gradient-brand)',
+                      color: 'white',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '4px',
-                      borderRadius: '50%',
-                      color: 'var(--color-text-subtle)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      boxShadow: '0 2px 6px rgba(255, 107, 129, 0.3)',
+                      flexShrink: 0,
                     }}
                   >
-                    <LogOut size={14} />
-                  </button>
-                </div>
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <span
+                    className="hide-on-mobile"
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      maxWidth: '100px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {user.name}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: 'var(--color-text-muted)',
+                      transition: 'transform 0.2s ease',
+                      transform: isUserMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
+                </button>
+
+                {/* User Dropdown Menu Card */}
+                {isUserMenuOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 8px)',
+                      right: 0,
+                      minWidth: '240px',
+                      background: 'rgba(255, 255, 255, 0.98)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(240, 234, 230, 0.95)',
+                      borderRadius: '16px',
+                      boxShadow: '0 16px 36px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                      padding: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      zIndex: 60,
+                    }}
+                  >
+                    {/* User Profile Header */}
+                    <div
+                      style={{
+                        padding: '10px 12px',
+                        background: 'var(--color-surface-hover)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: 'var(--color-gradient-brand)',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div style={{ overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            color: 'var(--color-text-main)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {user.name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--color-text-muted)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {user.email}
+                        </div>
+                        {(user.role === 'ADMIN' || user.role === 'STAFF') && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              fontSize: '10px',
+                              fontWeight: '700',
+                              color: '#4f46e5',
+                              background: '#e0e7ff',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              marginTop: '3px',
+                            }}
+                          >
+                            {user.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }} />
+
+                    {/* Admin portal link (if admin/staff) */}
+                    {(user.role === 'ADMIN' || user.role === 'STAFF') && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="header-dropdown-item"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '9px 12px',
+                          borderRadius: '10px',
+                          color: '#4f46e5',
+                          fontWeight: '600',
+                          fontSize: '13px',
+                          textDecoration: 'none',
+                          background: 'rgba(224, 231, 255, 0.4)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <Shield size={16} color="#4f46e5" />
+                        <div>
+                          <div>Trang quản trị</div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '400' }}>
+                            Quản lý hệ thống cửa hàng
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* My Account link */}
+                    <Link
+                      href="/account"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        color: 'var(--color-text-main)',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                        textDecoration: 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <UserIcon size={16} color="var(--color-text-muted)" />
+                      <div>
+                        <div>Tài khoản của tôi</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-subtle)', fontWeight: '400' }}>
+                          Lịch sử đơn hàng & yêu thích
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }} />
+
+                    {/* Logout button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="header-dropdown-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        color: '#ef4444',
+                        fontWeight: '600',
+                        fontSize: '13px',
+                        background: 'none',
+                        border: 'none',
+                        width: '100%',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <LogOut size={16} color="#ef4444" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
