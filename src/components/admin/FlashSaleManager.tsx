@@ -52,7 +52,7 @@ export default function FlashSaleManager({
   const { showSuccess, showError } = useToast();
 
   const [campaigns, setCampaigns] = useState<FlashSaleCampaign[]>(initialCampaigns || []);
-  const [loading, setLoading] = useState(!initialCampaigns || initialCampaigns.length === 0);
+  const [loading, setLoading] = useState(initialCampaigns === undefined);
   const [, setTotal] = useState(initialTotal);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
@@ -61,7 +61,6 @@ export default function FlashSaleManager({
 
   // Available store products for selection
   const [allProducts, setAllProducts] = useState<any[]>(storeProducts || []);
-  const hasInitialized = React.useRef(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,18 +110,17 @@ export default function FlashSaleManager({
   }, []);
 
   useEffect(() => {
-    if (initialCampaigns && initialCampaigns.length > 0 && !hasInitialized.current && currentPage === 1) {
+    if (initialCampaigns !== undefined && currentPage === 1) {
       setCampaigns(initialCampaigns);
       setTotal(initialTotal);
       setLoading(false);
-      hasInitialized.current = true;
       return;
     }
     loadCampaigns();
   }, [loadCampaigns, initialCampaigns, initialTotal, currentPage]);
 
   useEffect(() => {
-    if (storeProducts && storeProducts.length > 0) {
+    if (storeProducts !== undefined) {
       setAllProducts(storeProducts);
     } else {
       loadAllProducts();

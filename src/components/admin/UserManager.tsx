@@ -38,9 +38,8 @@ export default function UserManager({ initialUsers, initialRoles, onRefreshCount
 
   const [users, setUsers] = useState<UserItem[]>(initialUsers || []);
   const [, setRoles] = useState<RoleItem[]>(initialRoles || []);
-  const [loading, setLoading] = useState(!initialUsers || initialUsers.length === 0);
+  const [loading, setLoading] = useState(initialUsers === undefined);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const hasInitialized = React.useRef(false);
 
   // Filter & Search & Pagination States
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,11 +65,10 @@ export default function UserManager({ initialUsers, initialRoles, onRefreshCount
   };
 
   useEffect(() => {
-    if (initialUsers && initialUsers.length > 0 && !hasInitialized.current) {
+    if (initialUsers !== undefined) {
       setUsers(initialUsers);
       if (initialRoles) setRoles(initialRoles);
       setLoading(false);
-      hasInitialized.current = true;
       return;
     }
     loadUsers();

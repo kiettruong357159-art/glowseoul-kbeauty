@@ -44,7 +44,7 @@ export default function ReviewManager({ initialReviews, onRefreshCounts }: Revie
 
   const [reviews, setReviews] = useState<AdminReviewItem[]>(initialReviews || []);
   const [, setTotal] = useState(initialReviews ? initialReviews.length : 0);
-  const [loading, setLoading] = useState(!initialReviews || initialReviews.length === 0);
+  const [loading, setLoading] = useState(initialReviews === undefined);
 
   // Filters & Pagination
   const [search, setSearch] = useState('');
@@ -56,7 +56,6 @@ export default function ReviewManager({ initialReviews, onRefreshCounts }: Revie
   // Delete Modal State
   const [deleteTarget, setDeleteTarget] = useState<AdminReviewItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const hasInitialized = React.useRef(false);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -81,11 +80,10 @@ export default function ReviewManager({ initialReviews, onRefreshCounts }: Revie
   }, [search, selectedRating, showError]);
 
   useEffect(() => {
-    if (initialReviews && initialReviews.length > 0 && !hasInitialized.current && !search && !selectedRating) {
+    if (initialReviews !== undefined && !search && !selectedRating) {
       setReviews(initialReviews);
       setTotal(initialReviews.length);
       setLoading(false);
-      hasInitialized.current = true;
       return;
     }
     fetchReviews();

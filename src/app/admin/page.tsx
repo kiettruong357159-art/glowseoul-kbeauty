@@ -115,12 +115,12 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
-  const [banners, setBanners] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [flashSales, setFlashSales] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[] | undefined>(undefined);
+  const [reviews, setReviews] = useState<any[] | undefined>(undefined);
+  const [flashSales, setFlashSales] = useState<any[] | undefined>(undefined);
   const [flashTotal, setFlashTotal] = useState(0);
-  const [usersList, setUsersList] = useState<any[]>([]);
-  const [rolesList, setRolesList] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<any[] | undefined>(undefined);
+  const [rolesList, setRolesList] = useState<any[] | undefined>(undefined);
 
   // Orders Tab State
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -430,7 +430,7 @@ export default function AdminPage() {
                 <FlashSaleManager
                   initialCampaigns={flashSales}
                   initialTotal={flashTotal}
-                  storeProducts={products}
+                  storeProducts={productsLoading ? undefined : products}
                   canManage={canManageProducts}
                   onRefreshCounts={refreshCountsAndTaxonomies}
                 />

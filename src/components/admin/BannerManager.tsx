@@ -72,7 +72,7 @@ export default function BannerManager({ banners: initialBanners, onRefreshCounts
   };
 
   useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
+    if (initialBanners !== undefined) {
       applyBannersData(initialBanners);
     } else {
       loadBanners();
