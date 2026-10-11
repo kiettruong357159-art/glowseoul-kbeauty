@@ -3,14 +3,22 @@ import { prisma } from '@/lib/db';
 import { getCurrentUserFromCookie } from '@/lib/auth';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: productId } = await params;
+    const { searchParams } = new URL(request.url);
+    const ratingParam = searchParams.get('rating');
+    const ratingFilter = ratingParam ? parseInt(ratingParam, 10) : undefined;
+
+    const whereClause: { productId: string; rating?: number } = { productId };
+    if (ratingFilter && ratingFilter >= 1 && ratingFilter <= 5) {
+      whereClause.rating = ratingFilter;
+    }
 
     const reviews = await prisma.review.findMany({
-      where: { productId },
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
     });
 

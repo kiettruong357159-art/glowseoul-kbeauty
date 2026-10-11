@@ -100,7 +100,8 @@
 ### 7. Kỷ luật Dọn dẹp Mã nguồn & Chống Dead Code (Code Hygiene & Zero Unused Elements)
 * **Tuyệt đối cấm Dead Code & Biến/Hàm Thừa**:
   - Không để lại bất kỳ biến cục bộ, hàm, kiểu dữ liệu (`type`/`interface`), hoặc `import` thư viện nào được khai báo mà không sử dụng.
-  - Bắt buộc kích hoạt cờ `"noUnusedLocals": true` và `"noUnusedParameters": true` trong `tsconfig.json`. Mọi tham số bắt buộc theo cấu trúc hàm/callback nhưng không dùng đến phải có tiền tố gạch dưới (ví dụ: `_request`, `_event`).
+  - Bắt buộc kích hoạt cờ `"noUnusedLocals": true` và `"noUnusedParameters": true` trong `tsconfig.json`.
+  - **Tuyệt đối CẤM dùng tiền tố "_" để lấp liếm biến/tham số không dùng**: Nghiêm cấm đặt tên `_request`, `_event`, `_index`, `_res`, hay tham số callback giả `(_, i)` để lách qua trình biên dịch hoặc pipeline. Nếu tham số/biến không dùng, **bắt buộc phải xóa bỏ hoàn toàn**; nếu là tham số cần thiết, **bắt buộc phải sử dụng thực tế** vào logic nghiệp vụ (phân trang, lọc, validation...).
   - Xóa triệt để các import thừa và biến rác ngay khi refactor hoặc đổi logic code.
 * **Cấm Debugger & Console Log Rác (Zero Debug Logs in Production)**:
   - Cấm tuyệt đối lệnh `debugger;` trong toàn bộ codebase.

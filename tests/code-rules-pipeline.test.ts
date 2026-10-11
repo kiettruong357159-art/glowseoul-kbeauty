@@ -12,6 +12,7 @@ describe('Pre-Push Pipeline & Code Rules Gateway Verification', () => {
     expect(content).toContain('checkImageResiliency');
     expect(content).toContain('checkEdgeMiddlewareProtection');
     expect(content).toContain('checkRouteSkeletons');
+    expect(content).toContain('checkNoUnderscoreVariableCheats');
   });
 
   it('phải có script tự động cài hook scripts/setup-hooks.ts', () => {

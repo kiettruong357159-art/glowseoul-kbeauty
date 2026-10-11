@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export async function GET(_request?: Request | unknown) {
+export async function GET() {
   try {
     const categoryNames: Record<string, string> = {
       serum: 'Serum & Tinh Chất',

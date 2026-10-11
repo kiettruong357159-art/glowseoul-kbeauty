@@ -152,8 +152,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
               }}
             >
               <div style={{ display: 'flex', gap: '2px' }}>
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} fill="#f59e0b" color="#f59e0b" />
+                {[1, 2, 3, 4, 5].map((starIndex) => (
+                  <Star key={starIndex} size={15} fill="#f59e0b" color="#f59e0b" />
                 ))}
               </div>
               <span>{product.rating.toFixed(1)}</span>

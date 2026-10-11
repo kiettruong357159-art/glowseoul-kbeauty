@@ -74,8 +74,7 @@ describe('Admin Dashboard & Orders System', () => {
 
   it('GET /api/admin/dashboard returns aggregated KPI metrics and trend data', async () => {
     const { GET } = await import('@/app/api/admin/dashboard/route');
-    const req = new NextRequest('http://localhost:3000/api/admin/dashboard');
-    const res = await GET(req);
+    const res = await GET();
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.stats).toBeDefined();

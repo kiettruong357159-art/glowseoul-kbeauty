@@ -1,12 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/admin/dashboard/route';
 
 describe('Admin Dashboard SQL Aggregation Performance', () => {
   it('GET /api/admin/dashboard computes KPIs using database aggregation without memory bloat', async () => {
     const startTime = performance.now();
-    const req = new NextRequest('http://localhost:3000/api/admin/dashboard');
-    const res = await GET(req);
+    const res = await GET();
     const duration = performance.now() - startTime;
 
     expect(res.status).toBe(200);

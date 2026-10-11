@@ -1,6 +1,14 @@
 import React from 'react';
 import SkeletonBox from './SkeletonBox';
 
+function getRowIndices(count: number): number[] {
+  const indices: number[] = [];
+  for (let i = 0; i < count; i++) {
+    indices.push(i);
+  }
+  return indices;
+}
+
 export default function AdminTableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -53,7 +61,7 @@ export default function AdminTableSkeleton({ rows = 6 }: { rows?: number }) {
 
         {/* Table Rows */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {Array.from({ length: rows }).map((_, idx) => (
+          {getRowIndices(rows).map((idx) => (
             <div
               key={idx}
               style={{

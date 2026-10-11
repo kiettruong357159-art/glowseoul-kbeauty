@@ -182,8 +182,8 @@ export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerPro
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={12} fill="#f59e0b" color="#f59e0b" />
+                  {[1, 2, 3, 4, 5].map((starIndex) => (
+                    <Star key={starIndex} size={12} fill="#f59e0b" color="#f59e0b" />
                   ))}
                   <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--color-text-main)', marginLeft: '4px' }}>
                     Top 1 Bestseller

@@ -291,6 +291,59 @@ function checkNoDebuggerOrConsoleLogs() {
 }
 
 // ============================================================================
+// CHECK 8: CẤM DÙNG TIỀN TỐ GẠCH DƯỚI "_" ĐỂ LẤP LIẾM BIẾN/THAM SỐ KHÔNG DÙNG
+// ============================================================================
+function checkNoUnderscoreVariableCheats() {
+  console.log('🔍 [Rule 8] Kiểm tra cấm dùng tiền tố "_" để lấp liếm biến/tham số không dùng...');
+  const allSourceFiles = getFiles(SRC_DIR, ['.ts', '.tsx']);
+  const allowedPrismaFields = new Set(['_sum', '_count', '_avg', '_min', '_max']);
+
+  for (const filePath of allSourceFiles) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Bỏ qua dòng comment
+      if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+        continue;
+      }
+
+      // Phát hiện định danh có tiền tố gạch dưới: e.g. _request, _item, _val
+      const underscoreMatches = line.match(/\b_([a-zA-Z0-9]+)\b/g);
+      if (underscoreMatches) {
+        for (const match of underscoreMatches) {
+          if (!allowedPrismaFields.has(match)) {
+            // Không bắt nhầm text bên trong string quotes thông thường
+            const isInsideString = /['"`][^'"`]*?_[a-zA-Z0-9]+[^'"`]*?['"`]/.test(line);
+            if (!isInsideString) {
+              violations.push({
+                file: path.relative(ROOT_DIR, filePath),
+                line: i + 1,
+                rule: 'Rule 8: Cấm dùng tiền tố "_" lấp liếm biến/tham số không dùng',
+                message: `Phát hiện định danh "${match}" có tiền tố gạch dưới. Tuyệt đối CẤM dùng "_" để qua mặt pipeline. Nếu không dùng bắt buộc phải xóa, nếu cần thiết bắt buộc phải sử dụng thực tế.`,
+              });
+            }
+          }
+        }
+      }
+
+      // Phát hiện tham số callback giả "_" e.g. (_, i) => ...
+      if (/\(\s*_\s*,|\s*,\s*_\s*[,)]/.test(line)) {
+        violations.push({
+          file: path.relative(ROOT_DIR, filePath),
+          line: i + 1,
+          rule: 'Rule 8: Cấm tham số giả "_" trong callback',
+          message: `Phát hiện tham số "_" giả. Vui lòng sử dụng mảng thực tế hoặc helper để không có tham số thừa.`,
+        });
+      }
+    }
+  }
+}
+
+// ============================================================================
 // MAIN EXECUTION
 // ============================================================================
 function runAllChecks() {
@@ -305,6 +358,7 @@ function runAllChecks() {
   checkDatabaseIntegrity();
   checkDeadCodeDiscipline();
   checkNoDebuggerOrConsoleLogs();
+  checkNoUnderscoreVariableCheats();
 
   console.log('----------------------------------------------------------------');
 

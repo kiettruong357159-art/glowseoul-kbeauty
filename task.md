@@ -77,4 +77,12 @@
   - [x] Bổ sung quy chuẩn vào `PROJECT_RULES_TEMPLATE.md`
   - [x] Chạy kiểm thử tự động, build và deploy lên Vercel Production
 
+- [x] **Giai Đoạn 10: Triệt Tiêu 100% Biến Giả Underscore '_' & Kích Hoạt Rule 8 Chặn Lách Pipeline**
+  - [x] Rà soát và xóa sạch 100% biến/tham số giả có tiền tố `_` trong `src/` (dashboard, reviews, HeroBanner, ProductDetail, AdminTableSkeleton)
+  - [x] Bổ sung tham số thực tế và nghiệp vụ lọc đánh giá theo sao trong `src/app/api/products/[id]/reviews/route.ts`
+  - [x] Nâng cấp `scripts/verify-code-rules.ts` với Rule 8 (Anti-Underscore Cheat Gateway)
+  - [x] Cập nhật điều khoản cấm tuyệt đối lấp liếm biến thừa trong `PROJECT_RULES_TEMPLATE.md`
+  - [x] Cập nhật test suite `tests/code-rules-pipeline.test.ts`
+  - [x] Kiểm thử toàn diện 52 test suites (156 tests passed) và deploy Vercel Production
+
 
