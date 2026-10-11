@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { Zap, ShoppingBag, Eye, ArrowRight, Sparkles } from 'lucide-react';
 import CountdownTimer from '@/components/ui/CountdownTimer';
@@ -9,6 +10,7 @@ import FlashSaleProgressBar from '@/components/ui/FlashSaleProgressBar';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
+import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 export interface FlashSaleItemData {
   id: string;
@@ -92,11 +94,7 @@ export default function FlashSaleSection({
     const isSoldOut = item.soldQuantity >= item.limitQuantity;
     if (isSoldOut) return;
 
-    let mainImg = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-    try {
-      const parsed = JSON.parse(item.product.images);
-      if (Array.isArray(parsed) && parsed[0]) mainImg = parsed[0];
-    } catch {}
+    const mainImg = getProductImageUrl(item.product.images);
 
     addItem(
       {
@@ -212,11 +210,7 @@ export default function FlashSaleSection({
             const product = item.product;
             const isSoldOut = item.soldQuantity >= item.limitQuantity;
 
-            let mainImg = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-            try {
-              const parsed = JSON.parse(product.images);
-              if (Array.isArray(parsed) && parsed[0]) mainImg = parsed[0];
-            } catch {}
+            const mainImg = getProductImageUrl(product.images);
 
             // Calculate savings & percent off based on product.price vs discountPrice
             const pctOff = Math.round(((product.price - item.discountPrice) / product.price) * 100);
@@ -281,7 +275,7 @@ export default function FlashSaleSection({
                     overflow: 'hidden',
                   }}
                 >
-                  <Image
+                  <SafeImage
                     src={mainImg}
                     alt={product.name}
                     fill

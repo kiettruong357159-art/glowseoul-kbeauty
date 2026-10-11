@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { CartItemType, useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
@@ -31,7 +32,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
           flexShrink: 0,
         }}
       >
-        <Image
+        <SafeImage
           src={item.image}
           alt={item.name}
           fill

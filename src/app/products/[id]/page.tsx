@@ -11,6 +11,7 @@ import ProductTabs from '@/components/product/ProductTabs';
 import ProductPurchaseAction from '@/components/product/ProductPurchaseAction';
 import ProductCard from '@/components/product/ProductCard';
 import ProductReviewsSection from '@/components/product/ProductReviewsSection';
+import { getProductImageArray, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 export const revalidate = 1800; // ISR cache 30 mins on Edge CDN
 
@@ -46,15 +47,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const imagesList: string[] = (() => {
-    try {
-      return JSON.parse(product.images);
-    } catch {
-      return ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80'];
-    }
-  })();
-
-  const mainImage = imagesList[0] || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
+  const imagesList = getProductImageArray(product.images);
+  const mainImage = imagesList[0] || DEFAULT_PRODUCT_IMAGE;
 
   // Fetch related products (same category or brand)
   const relatedProducts = await prisma.product.findMany({

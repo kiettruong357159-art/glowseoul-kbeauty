@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { X, Star, ShoppingBag, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
 import { ProductData } from './ProductCard';
+import { getProductImageArray, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 export default function QuickViewModal({
   product,
@@ -21,15 +23,8 @@ export default function QuickViewModal({
 
   if (!product) return null;
 
-  const imagesList: string[] = (() => {
-    try {
-      return JSON.parse(product.images);
-    } catch {
-      return ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80'];
-    }
-  })();
-
-  const mainImage = imagesList[0] || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
+  const imagesList = getProductImageArray(product.images);
+  const mainImage = imagesList[0] || DEFAULT_PRODUCT_IMAGE;
 
   const handleAdd = () => {
     addItem(
@@ -113,7 +108,7 @@ export default function QuickViewModal({
 
         {/* Product Image */}
         <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '360px', background: '#f8f8f8' }}>
-          <Image
+          <SafeImage
             src={mainImage}
             alt={product.name}
             fill

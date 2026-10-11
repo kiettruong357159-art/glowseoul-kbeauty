@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { Star, ShoppingBag, Eye, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
+import { getProductImageArray, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 export function getDiscountBadgeText(originalPrice?: number | null, price?: number): string | null {
   if (!originalPrice || !price || originalPrice <= price) return null;
@@ -39,15 +41,8 @@ export default function ProductCard({
   const [added, setAdded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const imagesList: string[] = (() => {
-    try {
-      return JSON.parse(product.images);
-    } catch {
-      return ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80'];
-    }
-  })();
-
-  const mainImage = imagesList[0] || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
+  const imagesList = getProductImageArray(product.images);
+  const mainImage = imagesList[0] || DEFAULT_PRODUCT_IMAGE;
   const discountText = getDiscountBadgeText(product.originalPrice, product.price);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -118,7 +113,7 @@ export default function ProductCard({
           display: 'block',
         }}
       >
-        <Image
+        <SafeImage
           src={mainImage}
           alt={product.name}
           fill

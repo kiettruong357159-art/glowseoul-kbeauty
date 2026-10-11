@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff5f5" />
+      <stop offset="50%" stop-color="#fef2f2" />
+      <stop offset="100%" stop-color="#fae8e8" />
+    </linearGradient>
+    <linearGradient id="bottleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#fffafa" />
+      <stop offset="85%" stop-color="#f5e8e8" />
+      <stop offset="100%" stop-color="#ebd5d5" />
+    </linearGradient>
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="60%" stop-color="#fb7185" />
+      <stop offset="100%" stop-color="#fda4af" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#f43f5e" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" rx="20" fill="url(#bgGrad)" />
+
+  <!-- Geometric aura circles -->
+  <circle cx="200" cy="190" r="130" fill="#fecdd3" opacity="0.25" />
+  <circle cx="200" cy="190" r="95" fill="#fda4af" opacity="0.2" />
+
+  <!-- Skincare bottle group -->
+  <g filter="url(#softShadow)">
+    <!-- Dropper top rubber pip -->
+    <rect x="186" y="70" width="28" height="24" rx="10" fill="#f43f5e" />
+
+    <!-- Dropper collar / gold band -->
+    <rect x="180" y="92" width="40" height="14" rx="3" fill="#e11d48" />
+
+    <!-- Bottle Neck -->
+    <rect x="184" y="106" width="32" height="18" fill="#fda4af" />
+
+    <!-- Bottle Body -->
+    <rect x="145" y="124" width="110" height="165" rx="28" fill="url(#bottleGrad)" stroke="#fda4af" stroke-width="2" />
+
+    <!-- Glass Reflection Highlight -->
+    <path d="M 158 142 Q 158 270 162 270" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9" />
+
+    <!-- Bottle Label -->
+    <rect x="157" y="165" width="86" height="85" rx="8" fill="#ffffff" stroke="#fee2e2" stroke-width="1.5" />
+    
+    <!-- Sparkle star -->
+    <path d="M 200 178 L 202 184 L 208 186 L 202 188 L 200 194 L 198 188 L 192 186 L 198 184 Z" fill="#f43f5e" />
+
+    <!-- Label text -->
+    <text x="200" y="210" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="800" fill="#e11d48" letter-spacing="2">GLOWSEOUL</text>
+    <text x="200" y="224" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="7.5" font-weight="600" fill="#9ca3af" letter-spacing="1">K-BEAUTY CARE</text>
+    <rect x="185" y="233" width="30" height="2" rx="1" fill="#fda4af" />
+  </g>
+
+  <!-- Bottom Brand Text -->
+  <text x="200" y="340" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#f43f5e" letter-spacing="1">SẢN PHẨM GLOWSEOUL</text>
+  <text x="200" y="358" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="500" fill="#9ca3af">Hình ảnh đang được cập nhật</text>
+</svg>

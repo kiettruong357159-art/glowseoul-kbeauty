@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { ShieldCheck, Truck, QrCode, Banknote, ArrowRight, Tag, Check, AlertCircle } from 'lucide-react';
 import { useCart, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/context/CartContext';
@@ -394,7 +395,7 @@ export default function CheckoutPage() {
                     }}
                   >
                     <div style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                      <Image src={item.image} alt={item.name} fill sizes="50px" style={{ objectFit: 'cover' }} />
+                      <SafeImage src={item.image} alt={item.name} fill sizes="50px" style={{ objectFit: 'cover' }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

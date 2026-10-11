@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromCookie } from '@/lib/auth';
+import { getProductImageUrl } from '@/lib/image-fallback';
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +19,10 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    const products = wishlists.map((w) => w.product);
+    const products = wishlists.map((w) => ({
+      ...w.product,
+      image: getProductImageUrl(w.product.images),
+    }));
 
     return NextResponse.json({
       wishlists,

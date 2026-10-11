@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
+import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 import { useRouter } from 'next/navigation';
 import {
   User as UserIcon,
@@ -56,7 +58,8 @@ interface WishlistProduct {
   name: string;
   price: number;
   originalPrice?: number | null;
-  image: string;
+  image?: string | null;
+  images?: string | null;
   brand: string;
   category: string;
   rating: number;
@@ -199,7 +202,7 @@ export default function AccountPage() {
           id: item.productId,
           name: item.name,
           price: item.price,
-          image: item.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
+          image: item.image || DEFAULT_PRODUCT_IMAGE,
           brand: 'GlowSeoul',
         },
         item.quantity
@@ -645,10 +648,11 @@ export default function AccountPage() {
                                       flexShrink: 0,
                                     }}
                                   >
-                                    <Image
-                                      src={item.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=120&q=80'}
+                                    <SafeImage
+                                      src={item.image}
                                       alt={item.name}
                                       fill
+                                      sizes="40px"
                                       style={{ objectFit: 'cover' }}
                                     />
                                   </div>
@@ -840,10 +844,11 @@ export default function AccountPage() {
 
                         {/* Image */}
                         <Link href={`/products/${prod.id}`} style={{ position: 'relative', height: '180px', background: '#f9f9f9', display: 'block' }}>
-                          <Image
-                            src={prod.image}
+                          <SafeImage
+                            src={prod.image || prod.images}
                             alt={prod.name}
                             fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
                             style={{ objectFit: 'contain', padding: '12px' }}
                           />
                         </Link>
@@ -883,7 +888,7 @@ export default function AccountPage() {
                                     id: prod.id,
                                     name: prod.name,
                                     price: prod.price,
-                                    image: prod.image,
+                                    image: getProductImageUrl(prod.image || prod.images),
                                     brand: prod.brand,
                                   },
                                   1

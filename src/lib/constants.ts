@@ -1,2 +1,5 @@
 export const FREE_SHIPPING_THRESHOLD = 399000;
 export const STANDARD_SHIPPING_FEE = 30000;
+
+export { DEFAULT_PRODUCT_IMAGE, LOCAL_PLACEHOLDER_IMAGE } from './image-fallback';
+

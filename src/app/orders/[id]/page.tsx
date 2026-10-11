@@ -2,6 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import { CheckCircle, ArrowRight, ShieldCheck, Home, QrCode } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
@@ -198,7 +199,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                 }}
               >
                 <div style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                  <Image src={item.image} alt={item.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
+                  <SafeImage src={item.image} alt={item.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <h4 style={{ fontSize: '14px', fontWeight: '600' }}>{item.name}</h4>

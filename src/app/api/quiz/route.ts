@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getProductImageUrl } from '@/lib/image-fallback';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,12 +12,7 @@ export async function POST(request: NextRequest) {
 
     // Helper to extract first image
     const getFirstImage = (imagesStr: string) => {
-      try {
-        const arr = JSON.parse(imagesStr);
-        return arr[0] || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-      } catch {
-        return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-      }
+      return getProductImageUrl(imagesStr);
     };
 
     // 1. Cleanser Match

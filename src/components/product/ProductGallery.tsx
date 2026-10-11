@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
+import { getProductImageArray, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 export default function ProductGallery({ images }: { images: string[] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const currentImage = images[selectedIndex] || images[0] || '';
+  const validatedImages = getProductImageArray(images);
+  const currentImage = validatedImages[selectedIndex] || validatedImages[0] || DEFAULT_PRODUCT_IMAGE;
 
   return (
     <div>
@@ -23,22 +25,20 @@ export default function ProductGallery({ images }: { images: string[] }) {
           marginBottom: '16px',
         }}
       >
-        {currentImage && (
-          <Image
-            src={currentImage}
-            alt="Product visual"
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            style={{ objectFit: 'cover' }}
-            priority
-          />
-        )}
+        <SafeImage
+          src={currentImage}
+          alt="Product visual"
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          style={{ objectFit: 'cover' }}
+          priority
+        />
       </div>
 
       {/* Thumbnails row */}
-      {images.length > 1 && (
+      {validatedImages.length > 1 && (
         <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
-          {images.map((img, idx) => (
+          {validatedImages.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedIndex(idx)}
@@ -54,7 +54,7 @@ export default function ProductGallery({ images }: { images: string[] }) {
                 transition: 'all 0.2s',
               }}
             >
-              <Image src={img} alt={`Thumbnail ${idx}`} fill sizes="74px" style={{ objectFit: 'cover' }} />
+              <SafeImage src={img} alt={`Thumbnail ${idx}`} fill sizes="74px" style={{ objectFit: 'cover' }} />
             </button>
           ))}
         </div>

@@ -23,6 +23,7 @@ import {
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 import Pagination from '@/components/ui/Pagination';
 
 interface OrderItemData {
@@ -466,8 +467,11 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
                         {order.items.slice(0, 2).map((item, idx) => (
                           <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <img
-                              src={item.image}
+                              src={item.image || DEFAULT_PRODUCT_IMAGE}
                               alt={item.name}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                              }}
                               style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', border: '1px solid var(--color-border)' }}
                             />
                             <div style={{ fontSize: '12px', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -868,8 +872,11 @@ export default function OrderManager({ orders, onRefresh, loading }: OrderManage
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <img
-                          src={it.image}
+                          src={it.image || DEFAULT_PRODUCT_IMAGE}
                           alt={it.name}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                          }}
                           style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--color-border)' }}
                         />
                         <div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import SafeImage from '@/components/ui/SafeImage';
 import {
   Sparkles,
   ChevronRight,
@@ -686,10 +687,11 @@ export default function RoutineQuizPage() {
                       display: 'block',
                     }}
                   >
-                    <Image
+                    <SafeImage
                       src={step.product.image}
                       alt={step.product.name}
                       fill
+                      sizes="100px"
                       style={{ objectFit: 'contain', padding: '6px' }}
                     />
                   </Link>

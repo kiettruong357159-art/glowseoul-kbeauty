@@ -3,6 +3,7 @@ import { Search, Plus, Edit2, Trash2, Sparkles, AlertCircle } from 'lucide-react
 import { formatPrice } from '@/lib/utils';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Pagination from '@/components/ui/Pagination';
+import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 interface ProductItem {
   id: string;
@@ -68,14 +69,7 @@ export default function ProductListTable({
   const paginatedProducts = products.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const parseFirstImage = (imagesStr: string): string => {
-    try {
-      const parsed = JSON.parse(imagesStr);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
-      if (typeof parsed === 'string') return parsed;
-    } catch {
-      if (imagesStr && imagesStr.startsWith('http')) return imagesStr;
-    }
-    return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
+    return getProductImageUrl(imagesStr);
   };
 
   return (
@@ -245,6 +239,9 @@ export default function ProductListTable({
                           <img
                             src={imgUrl}
                             alt={p.name}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                            }}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         </div>

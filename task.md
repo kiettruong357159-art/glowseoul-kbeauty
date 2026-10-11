@@ -26,3 +26,15 @@
   - [x] Chạy toàn bộ 49 test suites (132/132 tests passed)
   - [x] Push commit lên Git và kích hoạt Vercel build
   - [x] Nghiệm thu Vercel deployment trạng thái READY và URL hoạt động (`https://glowseoul-kbeauty.vercel.app`)
+
+- [x] **Giai Đoạn 6: Chuẩn Hóa Hệ Thống Fallback Ảnh & Khắc Phục Lỗi Ảnh Yêu Thích**
+  - [x] Tạo asset placeholder SVG dự phòng ngoại tuyến: `public/placeholder-product.svg`
+  - [x] Tạo module quy chuẩn fallback ảnh: `src/lib/image-fallback.ts` (`DEFAULT_PRODUCT_IMAGE`, `LOCAL_PLACEHOLDER_IMAGE`, `getProductImageUrl`, `getProductImageArray`)
+  - [x] Xuất `DEFAULT_PRODUCT_IMAGE` từ `src/lib/constants.ts`
+  - [x] Tạo component `SafeImage.tsx` tự động xử lý `onError` và fallback đa tầng cho toàn hệ thống
+  - [x] Sửa API `/api/account/wishlist` định dạng trả về trường `image` hợp lệ cho từng sản phẩm
+  - [x] Cập nhật giao diện `/account` (wishlist card, order history items, Add to Cart) sử dụng `SafeImage` và fallback
+  - [x] Chuẩn hóa toàn bộ hệ thống hiển thị ảnh sản phẩm: `ProductCard`, `QuickViewModal`, `ProductGallery`, `FlashSaleSection`, `CartItem`, `checkout/page.tsx`, `orders/[id]/page.tsx`, `quiz/page.tsx`, `ProductListTable`, `OrderManager`
+  - [x] Viết test suite `tests/image-fallback.test.ts` (141/141 tests passed)
+  - [x] Xác minh production build `npm run build` thành công 100%
+

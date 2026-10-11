@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromCookie } from '@/lib/auth';
+import { getProductImageUrl } from '@/lib/image-fallback';
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,22 +49,15 @@ export async function GET(request: NextRequest) {
       prisma.review.count({ where }),
     ]);
 
-    const reviews = rawReviews.map((r) => {
-      let image = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-      try {
-        const parsed = JSON.parse(r.product.images);
-        if (parsed[0]) image = parsed[0];
-      } catch {}
-      return {
-        ...r,
-        product: {
-          id: r.product.id,
-          name: r.product.name,
-          brand: r.product.brand,
-          image,
-        },
-      };
-    });
+    const reviews = rawReviews.map((r) => ({
+      ...r,
+      product: {
+        id: r.product.id,
+        name: r.product.name,
+        brand: r.product.brand,
+        image: getProductImageUrl(r.product.images),
+      },
+    }));
 
     return NextResponse.json({ reviews, total });
   } catch (error) {
