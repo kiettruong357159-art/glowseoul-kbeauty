@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Truck, ShieldCheck } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface PromoBarProps {
   customMessage?: string;
+  initialMessage?: string | null;
 }
 
-export default function PromoBar({ customMessage }: PromoBarProps) {
+export default function PromoBar({ customMessage, initialMessage }: PromoBarProps) {
   const [promoText, setPromoText] = useState<string | null>(() => {
     if (customMessage) return customMessage;
+    if (initialMessage !== undefined && initialMessage !== null) return initialMessage;
     if (typeof window !== 'undefined') {
       try {
         return localStorage.getItem('glowseoul_promo_text') || null;
@@ -43,6 +45,10 @@ export default function PromoBar({ customMessage }: PromoBarProps) {
       .catch(() => {});
   }, [customMessage]);
 
+  if (!promoText) {
+    return null;
+  }
+
   return (
     <div style={{
       background: 'var(--color-gradient-brand)',
@@ -59,23 +65,9 @@ export default function PromoBar({ customMessage }: PromoBarProps) {
         gap: '24px',
         flexWrap: 'wrap',
       }}>
-        {promoText ? (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Sparkles size={14} /> {promoText}
-          </span>
-        ) : (
-          <>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Truck size={14} /> Freeship toàn quốc cho đơn từ 399.000₫
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={14} /> Nhập <strong>KBEAUTY10</strong> giảm ngay 10%
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} /> 100% Mỹ phẩm Hàn Quốc chính hãng
-            </span>
-          </>
-        )}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Sparkles size={14} /> {promoText}
+        </span>
       </div>
     </div>
   );

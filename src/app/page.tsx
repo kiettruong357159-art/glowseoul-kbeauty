@@ -27,7 +27,14 @@ export default async function HomePage() {
     skinType: true,
   };
 
-  const [bestSellers, newArrivals, heroBanner] = await Promise.all([
+  const [
+    bestSellers,
+    newArrivals,
+    heroBanner,
+    categoriesFromDb,
+    brandsFromDb,
+    categoryCounts,
+  ] = await Promise.all([
     prisma.product.findMany({
       where: { isBestSeller: true },
       take: 8,
@@ -41,7 +48,27 @@ export default async function HomePage() {
     prisma.banner.findFirst({
       where: { type: 'hero', isActive: true },
     }),
+    prisma.category.findMany({
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.brand.findMany({
+      orderBy: { createdAt: 'asc' },
+      take: 8,
+    }),
+    prisma.product.groupBy({
+      by: ['category'],
+      _count: { id: true },
+    }),
   ]);
+
+  const countMap = Object.fromEntries(
+    categoryCounts.map((c) => [c.category, c._count.id])
+  );
+
+  const categories = categoriesFromDb.map((c) => ({
+    ...c,
+    count: `${countMap[c.slug] || 0} sản phẩm`,
+  }));
 
   return (
     <div>
@@ -50,6 +77,8 @@ export default async function HomePage() {
         badgeText={heroBanner?.badgeText || undefined}
         title={heroBanner?.title || undefined}
         subtitle={heroBanner?.subtitle || undefined}
+        imageUrl={heroBanner?.imageUrl || undefined}
+        topProduct={bestSellers[0] || undefined}
       />
 
       {/* Real-time Flash Sale Countdown Section */}
@@ -59,7 +88,7 @@ export default async function HomePage() {
       <SkinTypeSelector />
 
       {/* Featured Categories */}
-      <CategoryGrid />
+      <CategoryGrid categories={categories} />
 
       {/* Best Sellers Section */}
       <section style={{ padding: '40px 0' }}>
@@ -290,7 +319,7 @@ export default async function HomePage() {
       </section>
 
       {/* Brand Showcase */}
-      <BrandShowcase />
+      <BrandShowcase brands={brandsFromDb} />
     </div>
   );
 }

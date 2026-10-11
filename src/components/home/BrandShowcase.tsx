@@ -1,18 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
 
-const brands = [
-  { name: 'COSRX', tag: 'Dược mỹ phẩm dịu nhẹ' },
-  { name: 'Beauty of Joseon', tag: 'Thảo mộc Hanbang hoàng gia' },
-  { name: 'Laneige', tag: 'Dưỡng ẩm chuyên sâu' },
-  { name: 'Skin1004', tag: 'Rau má Madagascar tinh khiết' },
-  { name: 'Torriden', tag: '5D Hyaluronic Acid cấp nước' },
-  { name: 'Anua', tag: 'Diếp cá làm dịu da nhạy cảm' },
-  { name: 'Rom&nd', tag: 'Son môi trendy số 1 giới trẻ' },
-  { name: 'Innisfree', tag: 'Trà xanh thiên nhiên đảo Jeju' },
-];
+export interface BrandItem {
+  id?: string;
+  name: string;
+  slug?: string;
+  tag?: string | null;
+  origin?: string | null;
+  logo?: string | null;
+}
 
-export default function BrandShowcase() {
+interface BrandShowcaseProps {
+  brands?: BrandItem[];
+}
+
+export default function BrandShowcase({ brands = [] }: BrandShowcaseProps) {
+  if (!brands || brands.length === 0) return null;
   return (
     <section style={{ padding: '40px 0 60px' }}>
       <div className="container">
@@ -67,7 +70,7 @@ export default function BrandShowcase() {
                   textOverflow: 'ellipsis',
                 }}
               >
-                {b.tag}
+                {b.tag || b.origin || 'Chính hãng Hàn Quốc'}
               </div>
             </Link>
           ))}

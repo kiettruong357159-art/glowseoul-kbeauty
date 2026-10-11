@@ -4,14 +4,32 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Star } from 'lucide-react';
 import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
+import { formatPrice } from '@/lib/utils';
+
+export interface TopProductData {
+  id: string;
+  name: string;
+  price: number;
+  rating?: number;
+  reviewCount?: number;
+  images?: string;
+}
 
 interface HeroBannerProps {
   badgeText?: string;
   title?: string;
   subtitle?: string;
+  imageUrl?: string;
+  topProduct?: TopProductData;
 }
 
-export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerProps = {}) {
+export default function HeroBanner({
+  badgeText,
+  title,
+  subtitle,
+  imageUrl,
+  topProduct,
+}: HeroBannerProps = {}) {
   return (
     <section
       style={{
@@ -161,8 +179,8 @@ export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerPro
               }}
             >
               <img
-                src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80"
-                alt="K-Beauty Luxury Skincare"
+                src={imageUrl || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80'}
+                alt={title || 'K-Beauty Luxury Skincare'}
                 onError={(e) => {
                   e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
                 }}
@@ -189,11 +207,22 @@ export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerPro
                     Top 1 Bestseller
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-main)' }}>
-                  COSRX Snail Mucin 96%
+                <p
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: 'var(--color-text-main)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {topProduct ? topProduct.name : 'COSRX Snail Mucin 96%'}
                 </p>
                 <span style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: '700' }}>
-                  285.000₫ • Đã bán 2.4k+
+                  {topProduct
+                    ? `${formatPrice(topProduct.price)} • ${topProduct.reviewCount ? `${topProduct.reviewCount} đánh giá` : 'Đã bán chạy'}`
+                    : '285.000₫ • Đã bán 2.4k+'}
                 </span>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { AuthProvider } from '@/context/AuthContext';
 import StorefrontLayout from '@/components/layout/StorefrontLayout';
+import { prisma } from '@/lib/db';
 
 export const metadata: Metadata = {
   title: 'GlowSeoul - Mỹ Phẩm K-Beauty Hàn Quốc Chính Hãng',
@@ -19,18 +20,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let initialPromoText: string | null = null;
+  try {
+    const promoBanner = await prisma.banner.findFirst({
+      where: { type: 'promo_bar', isActive: true },
+      select: { title: true },
+    });
+    initialPromoText = promoBanner?.title || null;
+  } catch {
+    initialPromoText = null;
+  }
+
   return (
     <html lang="vi">
       <body>
         <ToastProvider>
           <AuthProvider>
             <CartProvider>
-              <StorefrontLayout>{children}</StorefrontLayout>
+              <StorefrontLayout initialPromoText={initialPromoText}>{children}</StorefrontLayout>
             </CartProvider>
           </AuthProvider>
         </ToastProvider>

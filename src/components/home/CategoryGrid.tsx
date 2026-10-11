@@ -4,40 +4,29 @@ import React from 'react';
 import Link from 'next/link';
 import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
-const categories = [
-  {
-    name: 'Serum & Tinh Chất',
-    slug: 'serum',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
-    count: '15+ sản phẩm',
-  },
-  {
-    name: 'Kem Chống Nắng',
-    slug: 'sunscreen',
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80',
-    count: '10+ sản phẩm',
-  },
-  {
-    name: 'Toner Cân Bằng',
-    slug: 'toner',
-    image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=400&q=80',
-    count: '8+ sản phẩm',
-  },
-  {
-    name: 'Mặt Nạ Dưỡng',
-    slug: 'mask',
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=80',
-    count: '12+ sản phẩm',
-  },
-  {
-    name: 'Son & Trang Điểm',
-    slug: 'makeup',
-    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80',
-    count: '20+ sản phẩm',
-  },
-];
+const CATEGORY_DEFAULT_IMAGES: Record<string, string> = {
+  serum: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
+  sunscreen: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80',
+  toner: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=400&q=80',
+  mask: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=80',
+  cleanser: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80',
+  makeup: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80',
+};
 
-export default function CategoryGrid() {
+export interface CategoryItem {
+  id?: string;
+  name: string;
+  slug: string;
+  image?: string | null;
+  count?: string;
+}
+
+interface CategoryGridProps {
+  categories?: CategoryItem[];
+}
+
+export default function CategoryGrid({ categories = [] }: CategoryGridProps) {
+  if (!categories || categories.length === 0) return null;
   return (
     <section style={{ padding: '40px 0' }}>
       <div className="container">
@@ -81,7 +70,7 @@ export default function CategoryGrid() {
               }}
             >
               <img
-                src={cat.image}
+                src={cat.image || CATEGORY_DEFAULT_IMAGES[cat.slug] || DEFAULT_PRODUCT_IMAGE}
                 alt={cat.name}
                 onError={(e) => {
                   e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;

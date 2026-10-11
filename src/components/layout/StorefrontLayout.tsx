@@ -7,7 +7,12 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CartDrawer from '@/components/cart/CartDrawer';
 
-export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
+interface StorefrontLayoutProps {
+  children: React.ReactNode;
+  initialPromoText?: string | null;
+}
+
+export default function StorefrontLayout({ children, initialPromoText }: StorefrontLayoutProps) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
@@ -17,7 +22,7 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
 
   return (
     <>
-      <PromoBar />
+      <PromoBar initialMessage={initialPromoText} />
       <Header />
       <CartDrawer />
       <main style={{ minHeight: 'calc(100vh - 350px)' }}>{children}</main>
