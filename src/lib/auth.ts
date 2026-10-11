@@ -74,15 +74,26 @@ export function verifySessionToken(token: string): SessionData | null {
  * Helper to get current authenticated user from cookie in API handlers or server components
  */
 export async function getCurrentUserFromCookie(cookieHeader?: string | null) {
-  if (!cookieHeader) return null;
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map((c) => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    })
-  );
+  let token: string | undefined;
 
-  const token = cookies[SESSION_COOKIE_NAME];
+  if (cookieHeader) {
+    const cookies = Object.fromEntries(
+      cookieHeader.split(';').map((c) => {
+        const [k, ...v] = c.trim().split('=');
+        return [k, v.join('=')];
+      })
+    );
+    token = cookies[SESSION_COOKIE_NAME];
+  } else {
+    try {
+      const { cookies: getNextCookies } = await import('next/headers');
+      const cookieStore = await getNextCookies();
+      token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    } catch {
+      token = undefined;
+    }
+  }
+
   if (!token) return null;
 
   const session = verifySessionToken(token);

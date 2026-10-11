@@ -22,7 +22,7 @@ export default function ProductPurchaseAction({
 }) {
   const router = useRouter();
   const { addItem, setIsCartOpen } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { showSuccess, showError, showInfo } = useToast();
 
   const [quantity, setQuantity] = useState(1);
@@ -48,6 +48,7 @@ export default function ProductPurchaseAction({
   }, [user, product.id]);
 
   const handleToggleWishlist = async () => {
+    if (authLoading) return;
     if (!user) {
       showInfo('Vui lòng đăng nhập để lưu sản phẩm vào danh sách yêu thích!');
       return;
@@ -65,7 +66,11 @@ export default function ProductPurchaseAction({
         setIsFavorited(data.favorited);
         showSuccess(data.message || (data.favorited ? 'Đã thêm vào yêu thích' : 'Đã bỏ yêu thích'));
       } else {
-        showError(data.error || 'Có lỗi xảy ra');
+        if (res.status === 401) {
+          showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        } else {
+          showError(data.error || 'Có lỗi xảy ra');
+        }
       }
     } catch {
       showError('Không thể cập nhật danh sách yêu thích');
