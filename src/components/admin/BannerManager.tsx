@@ -17,7 +17,7 @@ interface BannerItem {
 
 export default function BannerManager() {
   const { showSuccess, showError } = useToast();
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [, setBanners] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Promo bar state

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Image as ImageIcon, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import CustomSelect from '@/components/ui/CustomSelect';
 
 interface ProductFormModalProps {

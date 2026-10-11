@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import React from 'react';
 
 describe('Page-Specific Tailored Loading Skeletons', () => {
   it('loads and renders root HomeLoading skeleton component', async () => {

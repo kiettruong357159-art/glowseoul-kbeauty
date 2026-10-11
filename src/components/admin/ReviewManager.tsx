@@ -9,9 +9,6 @@ import {
   AlertTriangle,
   AlertCircle,
   MessageSquare,
-  Sparkles,
-  Filter,
-  X
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -41,7 +38,7 @@ export default function ReviewManager() {
   const { showSuccess, showError } = useToast();
 
   const [reviews, setReviews] = useState<AdminReviewItem[]>([]);
-  const [total, setTotal] = useState(0);
+  const [, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Filters & Pagination
@@ -49,7 +46,7 @@ export default function ReviewManager() {
   const [selectedRating, setSelectedRating] = useState<string>('');
   const [verifiedFilter, setVerifiedFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8);
+  const pageSize = 8;
 
   // Delete Modal State
   const [deleteTarget, setDeleteTarget] = useState<AdminReviewItem | null>(null);

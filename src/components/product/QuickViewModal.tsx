@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import { X, Star, ShoppingBag, Check, ArrowRight } from 'lucide-react';

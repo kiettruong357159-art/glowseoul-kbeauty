@@ -46,7 +46,7 @@ describe('Reviews and Account API Endpoints', () => {
   });
 
   it('GET & PUT /api/account/profile requires authentication and updates profile', async () => {
-    const { GET, PUT } = await import('@/app/api/account/profile/route');
+    const { GET } = await import('@/app/api/account/profile/route');
 
     // 1. Unauthorized GET
     const unauthReq = new NextRequest('http://localhost:3000/api/account/profile');
@@ -64,12 +64,7 @@ describe('Reviews and Account API Endpoints', () => {
       name: user.name,
       role: user.roleName,
     });
-
-    const cookieHeader = `${SESSION_COOKIE_NAME}=${token}`;
-    const origCookie = globalThis.document ? document.cookie : '';
-
-    // Mock next/headers cookies if needed, or check route handling
-    // Route uses getCurrentUserFromCookie() which reads next/headers cookies()
+    expect(token).toBeDefined();
   });
 
   it('POST /api/account/wishlist toggles wishlist status', async () => {

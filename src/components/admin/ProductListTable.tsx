@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, Sparkles, AlertCircle } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Pagination from '@/components/ui/Pagination';

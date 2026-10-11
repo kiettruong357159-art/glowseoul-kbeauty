@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import {
   Sparkles,
@@ -11,14 +10,10 @@ import {
   Check,
   ShoppingBag,
   RotateCcw,
-  ShieldCheck,
-  Heart,
   Droplets,
   Flame,
   Feather,
-  Sun,
   Smile,
-  Zap,
   Tag
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';

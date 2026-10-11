@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, Plus, Pencil, Trash2, Calendar, Clock, Check, X, AlertCircle, ShoppingBag, Eye, Search } from 'lucide-react';
+import { Zap, Plus, Pencil, Trash2, Calendar, X, AlertCircle, ShoppingBag, Search } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 import Pagination from '@/components/ui/Pagination';
 import CustomSelect from '@/components/ui/CustomSelect';
 import AdminTableSkeleton from '@/components/ui/skeletons/AdminTableSkeleton';
-import FlashSaleProgressBar from '@/components/ui/FlashSaleProgressBar';
-import CountdownTimer from '@/components/ui/CountdownTimer';
 
 export interface FlashSaleItem {
   id: string;
@@ -45,9 +43,9 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
 
   const [campaigns, setCampaigns] = useState<FlashSaleCampaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
+  const [, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(6);
+  const pageSize = 6;
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 

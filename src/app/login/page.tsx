@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowLeft, Heart, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowLeft, Heart, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 

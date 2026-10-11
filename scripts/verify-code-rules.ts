@@ -220,6 +220,77 @@ function checkDatabaseIntegrity() {
 }
 
 // ============================================================================
+// CHECK 6: KỶ LUẬT ZERO DEAD CODE (Zero Unused Elements & Compiler Strictness)
+// ============================================================================
+function checkDeadCodeDiscipline() {
+  console.log('🔍 [Rule 6] Kiểm tra kỷ luật Zero Dead Code (noUnusedLocals & noUnusedParameters)...');
+  const tsconfigPath = path.join(ROOT_DIR, 'tsconfig.json');
+  if (!fs.existsSync(tsconfigPath)) {
+    violations.push({
+      file: 'tsconfig.json',
+      rule: 'Rule 6: Zero Dead Code',
+      message: 'Không tìm thấy file tsconfig.json!',
+    });
+    return;
+  }
+
+  const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
+  const options = tsconfig.compilerOptions || {};
+
+  if (!options.noUnusedLocals) {
+    violations.push({
+      file: 'tsconfig.json',
+      rule: 'Rule 6: Zero Dead Code',
+      message: 'Bắt buộc kích hoạt compilerOptions.noUnusedLocals = true để cấm biến và import không dùng.',
+    });
+  }
+
+  if (!options.noUnusedParameters) {
+    violations.push({
+      file: 'tsconfig.json',
+      rule: 'Rule 6: Zero Dead Code',
+      message: 'Bắt buộc kích hoạt compilerOptions.noUnusedParameters = true để cấm tham số hàm không dùng.',
+    });
+  }
+}
+
+// ============================================================================
+// CHECK 7: CHỐNG DEBUGGER & CONSOLE.LOG RÁC TRONG PRODUCTION
+// ============================================================================
+function checkNoDebuggerOrConsoleLogs() {
+  console.log('🔍 [Rule 7] Kiểm tra cấm debugger và console.log trong mã nguồn src/...');
+  const allSourceFiles = getFiles(SRC_DIR, ['.ts', '.tsx', '.js', '.jsx']);
+
+  for (const filePath of allSourceFiles) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Kiểm tra debugger
+      if (line.includes('debugger;') || line.trim() === 'debugger') {
+        violations.push({
+          file: path.relative(ROOT_DIR, filePath),
+          line: i + 1,
+          rule: 'Rule 7: Cấm Debugger trong Production',
+          message: 'Phát hiện lệnh debugger; sót lại trong mã nguồn. Bắt buộc xóa trước khi push.',
+        });
+      }
+
+      // Kiểm tra console.log (chỉ cho phép console.error hoặc console.warn)
+      if (line.includes('console.log(') && !line.trim().startsWith('//')) {
+        violations.push({
+          file: path.relative(ROOT_DIR, filePath),
+          line: i + 1,
+          rule: 'Rule 7: Cấm console.log rác trong Production',
+          message: 'Phát hiện lệnh console.log() trong mã nguồn. Vui lòng xóa hoặc thay thế bằng console.error / console.warn nếu là log ngoại lệ.',
+        });
+      }
+    }
+  }
+}
+
+// ============================================================================
 // MAIN EXECUTION
 // ============================================================================
 function runAllChecks() {
@@ -232,6 +303,8 @@ function runAllChecks() {
   checkRouteSkeletons();
   checkAntiDoubleSubmit();
   checkDatabaseIntegrity();
+  checkDeadCodeDiscipline();
+  checkNoDebuggerOrConsoleLogs();
 
   console.log('----------------------------------------------------------------');
 

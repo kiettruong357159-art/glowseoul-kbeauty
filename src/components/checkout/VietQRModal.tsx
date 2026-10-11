@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Copy, AlertCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Copy } from 'lucide-react';
 import { generateVietQRUrl } from '@/lib/vietqr';
 import { formatPrice } from '@/lib/utils';
 

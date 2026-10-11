@@ -97,6 +97,19 @@
     ```
 * **Không tự ý chụp ảnh màn hình**: Yêu cầu hỗ trợ bằng text nếu cần kiểm tra UI. Quản lý tiến độ trong file `task.md`.
 
+### 7. Kỷ luật Dọn dẹp Mã nguồn & Chống Dead Code (Code Hygiene & Zero Unused Elements)
+* **Tuyệt đối cấm Dead Code & Biến/Hàm Thừa**:
+  - Không để lại bất kỳ biến cục bộ, hàm, kiểu dữ liệu (`type`/`interface`), hoặc `import` thư viện nào được khai báo mà không sử dụng.
+  - Bắt buộc kích hoạt cờ `"noUnusedLocals": true` và `"noUnusedParameters": true` trong `tsconfig.json`. Mọi tham số bắt buộc theo cấu trúc hàm/callback nhưng không dùng đến phải có tiền tố gạch dưới (ví dụ: `_request`, `_event`).
+  - Xóa triệt để các import thừa và biến rác ngay khi refactor hoặc đổi logic code.
+* **Cấm Debugger & Console Log Rác (Zero Debug Logs in Production)**:
+  - Cấm tuyệt đối lệnh `debugger;` trong toàn bộ codebase.
+  - Cấm rải các lệnh `console.log()` debug tùy tiện trong thư mục `src/`. Chỉ cho phép `console.error()` và `console.warn()` trong các khối `try...catch` để ghi nhận lỗi ngoại lệ hoặc giám sát telemetry.
+* **Cấm Hàm Rỗng Không Mục Đích (No Empty Functions)**:
+  - Tránh khai báo các hàm rỗng `() => {}` làm logic giả hoặc placeholder chưa hoàn thiện. Nếu là noop callback có chủ đích, bắt buộc phải có comment giải thích rõ ràng.
+* **Tự động hóa qua Pre-push Verification**:
+  - Bộ kiểm tra `scripts/verify-code-rules.ts` kết hợp với `npx tsc --noEmit` được tự động chạy trước mỗi lệnh `git push` qua Git Hook để đảm bảo 100% không có dead code lọt vào repository.
+
 ---
 
 ## 🚀 PHẦN II: HẠ TẦNG CLOUD SERVERLESS & EDGE (MODERN INFRASTRUCTURE)

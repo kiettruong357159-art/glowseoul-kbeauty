@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
-import { Zap, ShoppingBag, Eye, ArrowRight, Sparkles } from 'lucide-react';
+import { Zap, ShoppingBag, Eye } from 'lucide-react';
 import CountdownTimer from '@/components/ui/CountdownTimer';
 import FlashSaleProgressBar from '@/components/ui/FlashSaleProgressBar';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
-import { formatPrice, calculateDiscount } from '@/lib/utils';
-import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
+import { formatPrice } from '@/lib/utils';
+import { getProductImageUrl } from '@/lib/image-fallback';
 
 export interface FlashSaleItemData {
   id: string;

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { CartItemType, useCart } from '@/context/CartContext';

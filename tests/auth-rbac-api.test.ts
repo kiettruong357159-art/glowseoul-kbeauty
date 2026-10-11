@@ -106,10 +106,6 @@ describe('Authentication Core and RBAC API Endpoints', () => {
     expect(meData.user.role).toBe('STAFF');
 
     // Call logout
-    const logoutReq = new NextRequest('http://localhost:3000/api/auth/logout', {
-      method: 'POST',
-      headers: { Cookie: cookieHeader },
-    });
     const logoutRes = await logoutPOST();
     expect(logoutRes.status).toBe(200);
     const logoutCookie = logoutRes.headers.get('set-cookie');

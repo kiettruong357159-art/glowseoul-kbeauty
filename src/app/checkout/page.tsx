@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
-import { ShieldCheck, Truck, QrCode, Banknote, ArrowRight, Tag, Check, AlertCircle } from 'lucide-react';
+import { ShieldCheck, QrCode, Banknote, ArrowRight, Tag } from 'lucide-react';
 import { useCart, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
 import VietQRModal from '@/components/checkout/VietQRModal';

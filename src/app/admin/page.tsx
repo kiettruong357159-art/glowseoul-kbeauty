@@ -17,7 +17,6 @@ import UserManager from '@/components/admin/UserManager';
 import ReviewManager from '@/components/admin/ReviewManager';
 import FlashSaleManager from '@/components/admin/FlashSaleManager';
 import AdminSidebar, { AdminTab } from '@/components/admin/AdminSidebar';
-import { LayoutDashboard, ShoppingBag, Package, Layers, Award, Ticket, Megaphone, Users } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import AdminDashboardSkeleton from '@/components/ui/skeletons/AdminDashboardSkeleton';
@@ -196,16 +195,6 @@ export default function AdminPage() {
     }
   };
 
-  const tabs = [
-    { id: 'dashboard' as const, label: 'Tổng quan', icon: LayoutDashboard },
-    { id: 'orders' as const, label: 'Đơn hàng', icon: ShoppingBag, count: counts.orders },
-    { id: 'products' as const, label: 'Sản phẩm', icon: Package, count: counts.products },
-    { id: 'categories' as const, label: 'Danh mục', icon: Layers, count: counts.categories },
-    { id: 'brands' as const, label: 'Thương hiệu', icon: Award, count: counts.brands },
-    { id: 'taxonomies' as const, label: 'Danh mục & Thương hiệu', icon: Layers, count: counts.categories + counts.brands },
-    { id: 'coupons' as const, label: 'Mã giảm giá', icon: Ticket, count: counts.coupons },
-    { id: 'banners' as const, label: 'Banners & Khuyến mãi', icon: Megaphone },
-  ];
 
   const tabTitles: Record<string, string> = {
     dashboard: 'Tổng quan Dashboard',
@@ -245,25 +234,6 @@ export default function AdminPage() {
         />
 
         <main style={{ flex: 1, padding: '28px 32px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
-          {/* Page Title & Intro */}
-          <div style={{ marginBottom: '24px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--color-text-main)', letterSpacing: '-0.5px' }}>
-              {activeTab === 'dashboard' && 'Bảng Điều Khiển Tổng Quan (Dashboard)'}
-              {activeTab === 'orders' && 'Quản Lý Đơn Đặt Hàng (Orders Management)'}
-              {activeTab === 'products' && 'Quản Lý Danh Sách Mỹ Phẩm K-Beauty'}
-              {activeTab === 'categories' && 'Quản Lý Danh Mục Sản Phẩm (Categories)'}
-              {activeTab === 'brands' && 'Quản Lý Thương Hiệu Đối Tác (Brands)'}
-              {activeTab === 'taxonomies' && 'Quản Lý Danh Mục & Thương Hiệu'}
-              {activeTab === 'coupons' && 'Cấu Hình Mã Giảm Giá & Voucher'}
-              {activeTab === 'flash-sales' && 'Quản Lý Khuyến Mãi Flash Sale (Giờ Vàng)'}
-              {activeTab === 'banners' && 'Cấu Hình Banner & Khuyến Mãi'}
-              {activeTab === 'reviews' && 'Quản Lý Đánh Giá & Nhận Xét Khách Hàng'}
-              {activeTab === 'users' && 'Quản Lý Tài Khoản & Phân Quyền (RBAC)'}
-            </h1>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-              Hệ thống quản trị dữ liệu gốc và vận hành thương mại điện tử GlowSeoul K-Beauty.
-            </p>
-          </div>
 
           {/* Quick Stats Overview on Master Data Tabs */}
           {activeTab !== 'dashboard' && activeTab !== 'orders' && (

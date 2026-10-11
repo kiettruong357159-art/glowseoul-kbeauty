@@ -1,9 +1,8 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
-import { CheckCircle, ArrowRight, ShieldCheck, Home, QrCode } from 'lucide-react';
+import { CheckCircle, ArrowRight, Home, QrCode } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import OrderStatusTracker from '@/components/order/OrderStatusTracker';
@@ -126,7 +125,14 @@ export default async function OrderDetailPage({ params }: PageProps) {
                   border: '1px solid var(--color-border)',
                 }}
               >
-                <Image src={qrUrl} alt="VietQR Payment" fill sizes="200px" style={{ objectFit: 'contain' }} unoptimized />
+                <img
+                  src={qrUrl}
+                  alt="VietQR Payment"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
               </div>
               <div style={{ marginTop: '12px', fontSize: '13px', fontWeight: '700' }}>
                 Số tiền: <span style={{ color: 'var(--color-primary)' }}>{formatPrice(order.totalAmount)}</span> • Nội dung: <span>{order.id}</span>

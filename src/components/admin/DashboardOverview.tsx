@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingBag, TrendingUp, AlertTriangle, ArrowRight, Truck, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { DollarSign, ShoppingBag, TrendingUp, AlertTriangle, ArrowRight, Sparkles } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { OrderData } from './OrderManager';
 
@@ -61,8 +61,28 @@ export default function DashboardOverview({ onNavigateTab }: DashboardOverviewPr
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        Đang tổng hợp dữ liệu Dashboard báo cáo...
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* 4 KPI Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="skeleton-shimmer"
+              style={{ height: '110px', borderRadius: 'var(--radius-lg)', background: 'var(--color-bg)' }}
+            />
+          ))}
+        </div>
+        {/* Charts & Tables Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+          <div
+            className="skeleton-shimmer"
+            style={{ height: '260px', borderRadius: 'var(--radius-lg)', background: 'var(--color-bg)' }}
+          />
+          <div
+            className="skeleton-shimmer"
+            style={{ height: '260px', borderRadius: 'var(--radius-lg)', background: 'var(--color-bg)' }}
+          />
+        </div>
       </div>
     );
   }

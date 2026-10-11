@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { NextRequest } from 'next/server';
 import {
   DEFAULT_PRODUCT_IMAGE,
-  LOCAL_PLACEHOLDER_IMAGE,
   getProductImageUrl,
   getProductImageArray,
   isValidImageUrl,
@@ -74,7 +73,7 @@ describe('Global Image Fallback System & Wishlist Image Integrity', () => {
 
   describe('Wishlist API returns valid image property for all products', () => {
     it('GET /api/account/wishlist populates product.image with valid string URL', async () => {
-      const { GET, POST } = await import('@/app/api/account/wishlist/route');
+      const { GET } = await import('@/app/api/account/wishlist/route');
 
       const user = await prisma.user.findFirst();
       const product = await prisma.product.findFirst({ skip: 5 });

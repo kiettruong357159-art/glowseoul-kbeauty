@@ -2,18 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import SafeImage from '@/components/ui/SafeImage';
 import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 import AccountOrdersSkeleton from '@/components/ui/skeletons/AccountOrdersSkeleton';
 import AccountWishlistSkeleton from '@/components/ui/skeletons/AccountWishlistSkeleton';
-import { useRouter } from 'next/navigation';
 import {
   User as UserIcon,
   Package,
   Heart,
   Settings,
-  LogOut,
   ExternalLink,
   ShoppingBag,
   Trash2,
@@ -77,10 +74,9 @@ const ORDER_STATUS_CONFIG: Record<string, { label: string; color: string; bg: st
 };
 
 export default function AccountPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, logout, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { addItem, setIsCartOpen } = useCart();
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'profile'>('orders');
 

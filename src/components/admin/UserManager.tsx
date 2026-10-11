@@ -35,7 +35,7 @@ export default function UserManager({ onRefreshCounts }: UserManagerProps) {
   const { showSuccess, showError } = useToast();
 
   const [users, setUsers] = useState<UserItem[]>([]);
-  const [roles, setRoles] = useState<RoleItem[]>([]);
+  const [, setRoles] = useState<RoleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 

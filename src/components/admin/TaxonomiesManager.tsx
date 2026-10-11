@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Layers, Award, Plus, Trash2, AlertCircle, Search } from 'lucide-react';
+import { Layers, Award, Trash2, AlertCircle, Search } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import Pagination from '@/components/ui/Pagination';
 

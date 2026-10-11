@@ -67,4 +67,14 @@
   - [x] Thiết lập GitHub Actions CI Pipeline (`.github/workflows/ci.yml`)
   - [x] Chạy thử nghiệm toàn diện `npm run verify` và kiểm tra hoạt động của pre-push hook (156/156 tests passed, build 30/30 routes thành công)
 
+- [x] **Giai Đoạn 9: Tinh Giản UI Admin & Kích Hoạt Kỷ Luật Zero Dead Code**
+  - [x] Xóa badge SQLite Connected và dọn dẹp AdminHeader
+  - [x] Xóa khối Tiêu đề h1 & Mô tả trùng lặp trên tất cả các tab Admin trong `src/app/admin/page.tsx`
+  - [x] Nâng cấp trạng thái tải của `DashboardOverview.tsx` với Shimmer Skeleton
+  - [x] Kích hoạt `noUnusedLocals` và `noUnusedParameters` trong `tsconfig.json`
+  - [x] Dọn sạch 100% imports và biến không sử dụng trong toàn bộ `src/` và `tests/`
+  - [x] Nâng cấp `scripts/verify-code-rules.ts` với Rule 6 (Zero Dead Code) và Rule 7 (Chống Debugger/Console.log)
+  - [x] Bổ sung quy chuẩn vào `PROJECT_RULES_TEMPLATE.md`
+  - [x] Chạy kiểm thử tự động, build và deploy lên Vercel Production
+
 

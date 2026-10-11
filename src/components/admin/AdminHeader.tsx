@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Database, Menu, ChevronRight, LogOut, User as UserIcon, Shield } from 'lucide-react';
+import { ArrowLeft, Menu, ChevronRight, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
@@ -137,36 +137,8 @@ export default function AdminHeader({ onMenuClick, currentTabTitle = 'Bảng đi
           </div>
         </div>
 
-        {/* Right Section: Database Status + User Profile + Logout + Storefront Link */}
+        {/* Right Section: User Profile + Logout + Storefront Link */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          {/* SQLite Status Pill */}
-          <div
-            className="hide-on-mobile"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#ecfdf5',
-              color: '#059669',
-              padding: '5px 10px',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '11px',
-              fontWeight: '700',
-            }}
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: '#10b981',
-                boxShadow: '0 0 6px #10b981',
-              }}
-            />
-            <Database size={13} />
-            <span>SQLite Connected</span>
-          </div>
-
           {/* User Profile Badge (if logged in) */}
           {user && (
             <div

@@ -18,7 +18,6 @@ import {
   X,
   User,
   Mail,
-  ArrowUpDown,
 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
