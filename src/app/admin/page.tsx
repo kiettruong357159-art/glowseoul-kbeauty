@@ -40,7 +40,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!authLoading) {
       if (!user || (user.role !== 'ADMIN' && user.role !== 'STAFF')) {
-        router.push('/admin/login');
+        router.replace('/admin/login');
       }
     }
   }, [user, authLoading, router]);
@@ -217,6 +217,37 @@ export default function AdminPage() {
     banners: 'Banners & Khuyến mãi',
     users: 'Tài khoản & Phân quyền (RBAC)',
   };
+
+  // Prevent flashing admin dashboard content while verifying session or when unauthorized
+  if (authLoading || !user || (user.role !== 'ADMIN' && user.role !== 'STAFF')) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--color-bg)',
+          gap: '16px',
+        }}
+      >
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid var(--color-border)',
+            borderTopColor: 'var(--color-primary)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
+          Đang kiểm tra quyền truy cập quản trị...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
