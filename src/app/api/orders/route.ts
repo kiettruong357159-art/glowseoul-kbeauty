@@ -23,7 +23,13 @@ export async function POST(request: Request) {
 
     // Calculate subtotal from database prices for security
     let subtotal = 0;
-    const orderItemsData = [];
+    const orderItemsData: {
+      productId: string;
+      name: string;
+      price: number;
+      quantity: number;
+      image: string;
+    }[] = [];
 
     for (const item of items) {
       const dbProduct = productMap.get(item.id);
@@ -35,7 +41,7 @@ export async function POST(request: Request) {
         name: dbProduct ? dbProduct.name : item.name,
         price,
         quantity: item.quantity,
-        image: item.image,
+        image: item.image || '',
       });
     }
 
