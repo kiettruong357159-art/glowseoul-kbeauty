@@ -197,6 +197,14 @@
 * Quy tắc dọn UI: một hành động chỉ xuất hiện **một chỗ** (VD bỏ nút Đăng xuất trùng ở banner hồ sơ, giữ nút ở vị trí chuẩn); chỉ hiện nút theo role (nút "Trang Quản Trị" chỉ cho `ADMIN`/`STAFF`).
 * Khi sửa UI hàng loạt, vẫn giữ nguyên chuỗi/ID mà contract test đang kiểm tra, rồi chạy lại `npm test`.
 
+### 17. Kỷ luật Hiệu năng Storefront (RSC, Cache, Live Search)
+* **Trang Server Component chỉ `select` đúng cột card cần** (id, name, price, images...), không lấy `description`, `ingredients`, `usage` dài. Dùng chung 1 object `productCardSelect` cho mọi danh sách.
+* Nhiều query độc lập trong 1 trang (best seller + hàng mới) gom vào `Promise.all`, không `await` nối đuôi.
+* **Cùng 1 dữ liệu dùng ở `generateMetadata` và `Page` -> bọc bằng `React.cache`** (`src/lib/cached-queries.ts`) để mỗi request chỉ query DB 1 lần.
+* **Live Search phải debounce (400ms)** rồi mới `router.replace(..., { scroll: false })`; phải `clearTimeout` ở cleanup và bỏ qua khi `query === initialValue` để không bắn request thừa lúc mount. Dùng `replace`, không `push`, để không làm đầy lịch sử trình duyệt.
+* **`Cache-Control` đặt theo độ "tươi" cần thiết của từng endpoint**, không dùng 1 số cho tất cả: endpoint có đếm ngược/suất bán (Flash Sale active) dùng `s-maxage=10, stale-while-revalidate=59` kèm `serverTime` để client tự canh giờ; danh sách ít đổi mới dùng `s-maxage=60`. Trang ISR dùng `export const revalidate = 60`.
+* Envelope trả về thống nhất `ActionResponse<T>` / `PaginatedResponse<T>` + helper `successResponse` / `errorResponse` tại `src/lib/types/api.ts`.
+
 ---
 
 ## 🚀 PHẦN II: HẠ TẦNG CLOUD SERVERLESS & EDGE (MODERN INFRASTRUCTURE)
