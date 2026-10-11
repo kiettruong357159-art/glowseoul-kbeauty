@@ -22,15 +22,15 @@ describe('Database User and Role Models', () => {
     expect(users.length).toBeGreaterThanOrEqual(3);
     const adminUser = users.find((u: any) => u.email === 'admin@glowseoul.vn');
     expect(adminUser).toBeDefined();
-    expect(adminUser.role.name).toBe('ADMIN');
-    expect(adminUser.password).toBeDefined();
+    expect(adminUser!.role.name).toBe('ADMIN');
+    expect(adminUser!.password).toBeDefined();
 
     const staffUser = users.find((u: any) => u.email === 'staff@glowseoul.vn');
     expect(staffUser).toBeDefined();
-    expect(staffUser.role.name).toBe('STAFF');
+    expect(staffUser!.role.name).toBe('STAFF');
 
     const customerUser = users.find((u: any) => u.email === 'customer@glowseoul.vn');
     expect(customerUser).toBeDefined();
-    expect(customerUser.role.name).toBe('CUSTOMER');
+    expect(customerUser!.role.name).toBe('CUSTOMER');
   });
 });

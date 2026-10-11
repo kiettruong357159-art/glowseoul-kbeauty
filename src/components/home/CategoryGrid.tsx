@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 const categories = [
   {
@@ -80,6 +83,9 @@ export default function CategoryGrid() {
               <img
                 src={cat.image}
                 alt={cat.name}
+                onError={(e) => {
+                  e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                }}
                 style={{
                   position: 'absolute',
                   inset: 0,

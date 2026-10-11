@@ -60,4 +60,11 @@
   - [x] Viết test suite `tests/page-skeletons.test.ts` (150/150 tests passed)
   - [x] Xác minh production build `npm run build` thành công 100%
 
+- [x] **Giai Đoạn 8: Thiết Lập Pipeline Kiểm Tra Rule Code Trước Khi Push (Pre-push & CI Pipeline)**
+  - [x] Xây dựng script kiểm tra quy chuẩn tĩnh `scripts/verify-code-rules.ts` (Image fallback, Route Skeletons, FOUC Middleware, Anti-double submit, Design Tokens)
+  - [x] Cấu hình các lệnh scripts trong `package.json` (`check:types`, `check:rules`, `verify`, `pre-push`, `prepare:hooks`)
+  - [x] Thiết lập Git Pre-push Hook tự động (`.git/hooks/pre-push` & `scripts/setup-hooks.ts`)
+  - [x] Thiết lập GitHub Actions CI Pipeline (`.github/workflows/ci.yml`)
+  - [x] Chạy thử nghiệm toàn diện `npm run verify` và kiểm tra hoạt động của pre-push hook (156/156 tests passed, build 30/30 routes thành công)
+
 

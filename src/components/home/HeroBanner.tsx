@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Star } from 'lucide-react';
+import { DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 interface HeroBannerProps {
   badgeText?: string;
@@ -160,6 +163,9 @@ export default function HeroBanner({ badgeText, title, subtitle }: HeroBannerPro
               <img
                 src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80"
                 alt="K-Beauty Luxury Skincare"
+                onError={(e) => {
+                  e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                }}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
 

@@ -184,6 +184,9 @@ export default function AdminHeader({ onMenuClick, currentTabTitle = 'Bảng đi
                 <img
                   src={user.avatar}
                   alt={user.name}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
                   style={{
                     width: '26px',
                     height: '26px',

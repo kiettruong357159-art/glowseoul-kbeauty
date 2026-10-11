@@ -64,9 +64,19 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Protect /account routes (Redirect to /login if not authenticated)
+  if (pathname.startsWith('/account')) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionCookie || !sessionCookie.includes('.')) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/account/:path*'],
 };

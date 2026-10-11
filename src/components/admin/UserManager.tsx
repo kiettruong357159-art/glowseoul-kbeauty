@@ -288,6 +288,9 @@ export default function UserManager({ onRefreshCounts }: UserManagerProps) {
                           <img
                             src={u.avatar}
                             alt={u.name}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
                             style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-border)' }}
                           />
                         ) : (

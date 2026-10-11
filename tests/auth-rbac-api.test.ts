@@ -110,7 +110,7 @@ describe('Authentication Core and RBAC API Endpoints', () => {
       method: 'POST',
       headers: { Cookie: cookieHeader },
     });
-    const logoutRes = await logoutPOST(logoutReq);
+    const logoutRes = await logoutPOST();
     expect(logoutRes.status).toBe(200);
     const logoutCookie = logoutRes.headers.get('set-cookie');
     expect(logoutCookie).toContain('Max-Age=0');
