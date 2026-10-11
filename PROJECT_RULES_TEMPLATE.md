@@ -28,10 +28,16 @@
   - Nút hành động (Thanh toán, Đặt hàng, Thêm giỏ hàng, Lưu, Xóa...) **bắt buộc phải vô hiệu hóa (`disabled`) và hiển thị biểu tượng loading ngay lập tức** trong lúc thao tác đang diễn ra (`isPending` hoặc `isSubmitting`).
   - Thêm chốt chặn logic: nếu đang gửi request thì `return` ngay lập tức, ngăn người dùng click liên tục làm cạn kiệt connection pool hoặc tạo bản ghi trùng lặp.
 * **Phân biệt rạch ròi 4 trạng thái giao diện (4 UI States)**:
-  1. `initial loading`: Tải trang lần đầu (bắt buộc dùng `loading.tsx` hoặc Skeleton Shimmer đồng bộ kích thước layout, không để màn hình trắng).
+  1. `initial loading`: Tải trang lần đầu (**Bắt buộc dùng Skeleton Shimmer tùy biến theo từng trang - Tailored Route-level Skeleton**).
+     - **Nguyên tắc "Mỗi trang một Skeleton riêng biệt"**: Tuyệt đối không dùng 1 khung skeleton chung cho toàn bộ website (không để skeleton của trang chủ đè lên trang chi tiết, danh mục, checkout hay admin). Mỗi trang con (`/products`, `/products/[id]`, `/account`, `/admin`, `/checkout`, `/orders/[id]`, `/quiz`) bắt buộc có file `loading.tsx` với tỷ lệ kích thước và wireframe khớp 100% với layout thực tế của trang đó.
+     - **Triệt tiêu hoàn toàn Cumulative Layout Shift (CLS = 0)**: Khung xương shimmer giữ đúng vị trí, khi dữ liệu nạp xong giao diện không bị giật, nhảy khung hình hay lệch bố cục.
+     - **Cấm dùng text loader thô**: Tuyệt đối không dùng các dòng chữ trần như *"Đang tải..."*, *"Vui lòng chờ..."* hoặc một spinner xoay đơn độc giữa trang trống.
   2. `refreshing`: Làm mới dữ liệu nền qua Server Actions / Router Refresh (không khóa màn hình hay chặn thao tác của user).
   3. `mutation pending`: Đang xử lý sau click (chỉ xoay loading tại chính nút bấm đó).
   4. `empty`: Không có dữ liệu (bắt buộc render Empty State component chuyên nghiệp kèm nút kêu gọi hành động, không để khoảng trống vô nghĩa).
+* **Chống Flash màn hình bảo vệ (Zero Flash of Unauthenticated Content - FOUC)**:
+  - Mọi route nhạy cảm hoặc yêu cầu đăng nhập/phân quyền (như `/admin`, `/account`) **bắt buộc phải được chặn và kiểm tra ngay từ Edge Middleware (`src/middleware.ts`)** trước khi Next.js render hoặc trả về giao diện.
+  - Tuyệt đối không để xảy ra lỗi: Người dùng chưa đăng nhập bấm vào `/admin` bị nhìn thấy giao diện quản trị trong 1-2 giây rồi mới bị giật màn hình chuyển về `/admin/login`.
 * **Phản hồi tức thì (Optimistic UI với React 19)**:
   - Với các tương tác toggle (Like, Yêu thích, Toggle trạng thái, Check hoàn thành...): Áp dụng `useOptimistic` để đổi giao diện trong 0ms, sau đó mới đồng bộ ngầm xuống DB. Nếu lỗi, tự động rollback.
 * **Non-Blocking UI với `useTransition`**:
@@ -72,8 +78,10 @@
 * **Component-based & Micro-animations**:
   - Chia nhỏ component rõ ràng, dễ tái sử dụng.
   - Micro-animation tinh tế (0.2s - 0.3s `cubic-bezier(0.16, 1, 0.3, 1)`), hỗ trợ hover nâng nhẹ thẻ card (`translateY(-2px)`).
-* **Nói KHÔNG với Placeholder tạm bợ**:
+* **Nói KHÔNG với Placeholder tạm bợ & Ảnh vỡ (System-Wide Image Resiliency)**:
   - Luôn dùng dữ liệu demo thực tế, hình ảnh chuẩn sắc nét, câu chữ thương mại chỉnh chu.
+  - **Quy chuẩn Fallback Ảnh Mặc Định Toàn Hệ Thống**: 100% component hiển thị hình ảnh (`ProductCard`, `ProductDetail`, `Wishlist`, `CartDrawer`, `OrderItem`, `AdminTable`) bắt buộc phải có ảnh mặc định dự phòng (`/images/placeholder-product.svg`).
+  - **Tuyệt đối cấm để vỡ ảnh (Broken Images)**: Khi URL ảnh từ database bị 404, lỗi kết nối mạng hoặc không tồn tại, Client Component bắt buộc phải bắt sự kiện `onError` để fallback sang ảnh mặc định ngay lập tức, không để lại icon vỡ ảnh của trình duyệt hay khung trắng làm mất thẩm mỹ.
 
 ### 6. Kỷ luật Quy trình phát triển (AI Workflow & Engineering Constraints)
 * **Plan-first (Lên kế hoạch trước khi code)**: Luôn trình bày kế hoạch chi tiết (Schema -> Backend Action -> UI States -> Verification) để thống nhất trước khi code.
@@ -337,6 +345,85 @@ export async function getDashboardStats() {
     ```
   - Export file Excel/PDF dạng nhị phân streaming.
 
+### 4. Edge Middleware & Kiểm soát Truy cập Route (`src/middleware.ts`)
+* **Chạy tại Edge (< 5ms)**:
+  - Middleware chạy trước toàn bộ Serverless Function và quá trình render trang.
+  - Kiểm tra Cookie phiên làm việc (`session_token`) và giải mã chữ ký bảo mật.
+  - Phân tách và bảo vệ các tuyến đường riêng tư: `/admin` (chỉ dành cho vai trò ADMIN) và `/account` (dành cho người dùng đã đăng nhập).
+* **Triệt tiêu hoàn toàn hiện tượng Flash of Unauthenticated Content (FOUC)**:
+  - Nếu người dùng chưa đăng nhập truy cập `/admin`, Middleware lập tức tạo `NextResponse.redirect(new URL('/admin/login', req.url))` tại Edge. Trình duyệt nhận HTTP 307/308 ngay lập tức, không bao giờ nhận HTML của trang quản trị.
+* **Mẫu Middleware chuẩn**:
+  ```typescript
+  // src/middleware.ts
+  import { NextResponse } from 'next/server';
+  import type { NextRequest } from 'next/server';
+
+  export function middleware(req: NextRequest) {
+    const { pathname } = req.nextUrl;
+    const sessionToken = req.cookies.get('session_token')?.value;
+
+    // Bỏ qua trang login của admin
+    if (pathname === '/admin/login') {
+      return NextResponse.next();
+    }
+
+    // Bảo vệ tuyến /admin
+    if (pathname.startsWith('/admin')) {
+      if (!sessionToken) {
+        const loginUrl = new URL('/admin/login', req.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+
+      try {
+        // Parse payload từ token base64url để kiểm tra role tại Edge
+        const [payloadB64] = sessionToken.split('.');
+        const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
+        if (payload.role !== 'ADMIN' || (payload.expiresAt && Date.now() > payload.expiresAt)) {
+          return NextResponse.redirect(new URL('/admin/login', req.url));
+        }
+      } catch {
+        return NextResponse.redirect(new URL('/admin/login', req.url));
+      }
+    }
+
+    return NextResponse.next();
+  }
+
+  export const config = {
+    matcher: ['/admin/:path*', '/account/:path*'],
+  };
+  ```
+
+### 5. Chuẩn Quản lý Hình ảnh (`next/image`) & Fallback Đàn Hồi Toàn Hệ Thống
+* **Tối ưu tự động qua Vercel Image Optimization**:
+  - Luôn sử dụng `<Image />` từ `next/image` thay vì thẻ `<img>` truyền thống để tự động chuyển đổi định dạng WebP/AVIF, nén dung lượng và tải lười (lazy loading).
+* **Nguyên tắc Resilient Fallback (Cấm tuyệt đối vỡ ảnh)**:
+  - Chuẩn bị file asset vector chuẩn tại `/public/images/placeholder-product.svg` tone màu thanh lịch, có icon mỹ phẩm/sản phẩm rõ nét.
+  - Với Client Components (`'use client'`), bắt buộc triển khai fallback thông qua state hoặc sự kiện `onError`:
+    ```tsx
+    // src/components/ui/SafeImage.tsx
+    'use client';
+    import { useState } from 'react';
+    import Image, { ImageProps } from 'next/image';
+
+    const DEFAULT_PLACEHOLDER = '/images/placeholder-product.svg';
+
+    export function SafeImage({ src, alt, ...props }: ImageProps) {
+      const [imgSrc, setImgSrc] = useState(src || DEFAULT_PLACEHOLDER);
+
+      return (
+        <Image
+          {...props}
+          src={imgSrc}
+          alt={alt}
+          onError={() => setImgSrc(DEFAULT_PLACEHOLDER)}
+        />
+      );
+    }
+    ```
+  - Với Server Components (RSC): Luôn kiểm tra `src = product.image || '/images/placeholder-product.svg'` trước khi truyền vào props component con.
+
 ---
 
 ## 📦 PHẦN V: QUY CHUẨN DỮ LIỆU TRẢ VỀ & TYPE SAFETY (ENVELOPES)
@@ -477,9 +564,66 @@ export type CreateProductInput = z.infer<typeof CreateProductSchema>;
   - Không render hàng ngàn `<option>` trực tiếp vào DOM.
 * **Bảng dữ liệu & Phân trang (`Pagination`)**:
   - Luôn đi kèm hiển thị: `Trang X / Y`, `Tổng Z mục`, nút Trước/Sau và danh sách số trang có dấu chấm lửng `...`.
-* **Skeleton Loading Shimmer (`loading.tsx`)**:
-  - Tạo hiệu ứng sóng ánh sáng chuyển động (`animation: shimmer 1.5s infinite linear`).
-  - Khung xám giữ chỗ có kích thước và tỷ lệ khớp 100% với card sản phẩm và banner thật, triệt tiêu hiện tượng Cumulative Layout Shift (CLS = 0).
+* **Ảnh an toàn có Fallback (`SafeImage` / `placeholder-product.svg`)**:
+  - Tự động thay thế bằng ảnh vector default khi đường dẫn ảnh bị lỗi hoặc 404, ngăn vỡ giao diện.
+
+### 3. Kiến Trúc Skeleton Shimmer Đa Dạng Theo Từng Trang (Per-Page Tailored Skeleton System)
+
+> **Nguyên tắc bất biến**: Skeleton của mỗi trang phải là **bản sao kiến trúc (Wireframe Blueprint)** của chính trang đó. Tuyệt đối KHÔNG sử dụng một khung skeleton chung cho toàn bộ ứng dụng.
+
+#### A. Ma trận Skeleton theo từng Route
+
+| Tuyến đường (Route) | File Skeleton | Cấu trúc Wireframe Skeleton tương ứng |
+| :--- | :--- | :--- |
+| **Trang chủ (`/`)** | `src/app/loading.tsx` | **Hero Banner lớn** (chiều cao 460px) + Hàng 6 danh mục bo tròn + Khối Bento 2 cột + **Lưới Best Sellers 4 cột** |
+| **Danh mục sản phẩm (`/products`)** | `src/app/products/loading.tsx` | **Search & Toolbar** phía trên + **Filter Sidebar (260px)** bên trái (danh mục, khoảng giá, thương hiệu) + **Lưới 8 Card sản phẩm** bên phải |
+| **Chi tiết sản phẩm (`/products/[id]`)** | `src/app/products/[id]/loading.tsx` | **Breadcrumb** + **Khối Gallery ảnh 1:1 & 4 thumbnails** + **Buy Box** bên phải (Rating sao, Giá, Bộ chọn số lượng, 2 nút Mua/Giỏ hàng) + Tab thông số & Reviews |
+| **Trang tài khoản (`/account`)** | `src/app/account/loading.tsx` | **Profile Header** (Avatar tròn 80px + Tên + Badge VIP) + **Cột Tab điều hướng (280px)** + **Thẻ danh sách đơn hàng & Lưới yêu thích** |
+| **Cổng quản trị (`/admin`)** | `src/app/admin/loading.tsx` | **Admin Sidebar** (Logo + 7 menu items) + Header tìm kiếm/avatar + **4 KPI Stat Cards** + **Bảng dữ liệu quản trị (6 hàng)** |
+| **Trang thanh toán (`/checkout`)** | `src/app/checkout/loading.tsx` | **Bố cục 2 cột**: Cột trái form địa chỉ & PT thanh toán; Cột phải Card tóm tắt đơn hàng (danh sách thumbnail, voucher, tổng tiền) |
+| **Chi tiết đơn hàng (`/orders/[id]`)** | `src/app/orders/[id]/loading.tsx` | **Banner xác nhận** + **Thanh tiến trình 4 bước** (Chờ duyệt -> Đã duyệt -> Đang giao -> Đã giao) + Danh sách món hàng + Khối VietQR & Tiền |
+| **Skin Routine Quiz (`/quiz`)** | `src/app/quiz/loading.tsx` | **Thanh tiến trình câu hỏi** + Khung câu hỏi trung tâm + **4 thẻ lựa chọn đáp án** |
+
+#### B. CSS Shimmer Animation & Design Tokens
+Định nghĩa animation shimmer ánh sáng chuyển động tone màu ấm sang trọng (Champagne-Rose) trong `globals.css`:
+
+```css
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.skeleton-box {
+  position: relative;
+  overflow: hidden;
+  background-color: #f1ede8;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.6s infinite ease-in-out;
+}
+```
+
+#### C. Modular In-Component Skeletons
+Thay vì hiển thị các dòng text thô như *"Đang tải dữ liệu..."* hoặc spinner quay tròn làm biến dạng layout, bắt buộc sử dụng các component skeleton chuyên biệt:
+- `<SkeletonBox />`: Khối nguyên tử với các props `width`, `height`, `rounded`, `className`.
+- `<ProductCardSkeleton />`: Khung card sản phẩm tỷ lệ 1:1, nhãn brand, tên 2 dòng, sao và giá.
+- `<AccountOrdersSkeleton />`: Khung tải thẻ đơn hàng với mã đơn, ngày, thumbnail và tổng tiền.
+- `<AccountWishlistSkeleton />`: Khung tải danh sách yêu thích dạng lưới card.
+- `<AdminTableSkeleton rows={6} />`: Khung bảng dữ liệu quản trị với header và các hàng xen kẽ.
+- `<AdminDashboardSkeleton />`: Khung tải cổng admin khi đang xác thực session người dùng.
 
 ---
 
@@ -514,6 +658,36 @@ export type CreateProductInput = z.infer<typeof CreateProductSchema>;
     return user;
   }
   ```
+
+### 3. Kiến Trúc Bảo Vệ Tuyến Kép (Dual-Layer Route Protection) & Chống FOUC
+
+Để ngăn chặn 100% tình trạng người dùng trái phép nhìn thấy màn hình quản trị trong 1-2 giây rồi mới bị redirect (Flash of Unauthenticated Content - FOUC), hệ thống áp dụng cơ chế 2 lớp bảo vệ song hành:
+
+```text
+[ Người Dùng Yêu Cầu Tuyến /admin ]
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│ Lớp 1: Edge Middleware (< 5ms)  │  Chưa có token hoặc không phải ADMIN?
+│ (src/middleware.ts)             ├─────────────────────────────────────────┐
+└────────────────┬────────────────┘                                         │
+                 │ Hợp lệ                                                   │
+                 ▼                                                          ▼
+┌─────────────────────────────────┐                       ┌──────────────────────────────────┐
+│ Lớp 2: Page Component & Guard   │                       │ HTTP 307 Redirect Tức Thì        │
+│ (src/app/admin/page.tsx)        │                       │ (về /admin/login?redirect=...)   │
+│ - Hiển thị AdminDashboardSkeleton│                      │ Tuyệt đối không gửi HTML / DOM   │
+│   ngay lập tức trong lúc verify │                       └──────────────────────────────────┘
+│ - Không để lộ dữ liệu nhạy cảm  │
+└─────────────────────────────────┘
+```
+
+1. **Lớp 1 (Edge Middleware)**:
+   - Chặn đứng từ cổng vào, kiểm tra `session_token` tại Edge Network trước khi request chạm vào Serverless Lambda.
+   - Trả về Header chuyển hướng tức thì (Redirect HTTP 307/308).
+2. **Lớp 2 (Client/Server Guard & Skeleton Cover)**:
+   - Khi trang đang trong trạng thái xác thực phiên hoặc refresh token (`isLoading`), **bắt buộc render `<AdminDashboardSkeleton />`** che phủ toàn bộ màn hình.
+   - Tuyệt đối KHÔNG render giao diện Dashboard thật (danh sách đơn hàng, doanh thu, thông tin nhạy cảm) khi biến cờ `isAuthenticated` chưa được xác nhận là `true`.
 
 ---
 
@@ -580,8 +754,10 @@ Khi sao chép file này sang dự án mới làm CORE:
 - [ ] 2. Cài đặt Prisma ORM, cấu hình `DATABASE_URL` (PgBouncer port 6543) và `DIRECT_URL` (Port 5432).
 - [ ] 3. Thiết lập Design Tokens chuẩn tại `src/app/globals.css`.
 - [ ] 4. Tạo thư mục `src/lib/types/api.ts` chứa `ActionResponse<T>` và `PaginatedResponse<T>`.
-- [ ] 5. Thiết lập `loading.tsx` với Skeleton Shimmer cho trang chủ và catalog.
-- [ ] 6. Áp dụng chốt chặn Anti-double submit cho tất cả các nút Form/Action.
-- [ ] 7. Đảm bảo mọi câu query bảng lớn đều có `take`, `skip` và đánh Composite Index.
-- [ ] 8. Bọc các mutation thay đổi nhiều bảng bằng `prisma.$transaction`.
-- [ ] 9. Viết test case Vitest song hành cho các module nghiệp vụ quan trọng.
+- [ ] 5. Thiết lập **Skeleton Shimmer tùy biến theo từng route** (`/`, `/products`, `/products/[id]`, `/account`, `/admin`, `/checkout`, `/orders/[id]`, `/quiz`), cam kết CLS = 0, tuyệt đối không dùng 1 skeleton chung.
+- [ ] 6. Chuẩn bị file fallback ảnh mặc định (`/public/images/placeholder-product.svg`) và gắn xử lý `onError` cho 100% component hình ảnh, triệt tiêu lỗi vỡ ảnh.
+- [ ] 7. Cấu hình **Edge Middleware (`src/middleware.ts`)** bảo vệ các tuyến `/admin` và `/account`, chống hiện tượng Flash of Unauthenticated Content (FOUC).
+- [ ] 8. Áp dụng chốt chặn Anti-double submit và loading spinner cho tất cả các nút Form/Action.
+- [ ] 9. Đảm bảo mọi câu query bảng lớn đều có `take`, `skip` và đánh Composite Index.
+- [ ] 10. Bọc các mutation thay đổi từ 2 bảng trở lên bằng `prisma.$transaction`.
+- [ ] 11. Viết test case Vitest song hành cho các module nghiệp vụ và API quan trọng.
