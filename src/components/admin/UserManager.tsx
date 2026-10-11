@@ -28,16 +28,19 @@ export interface RoleItem {
 }
 
 interface UserManagerProps {
+  initialUsers?: UserItem[];
+  initialRoles?: RoleItem[];
   onRefreshCounts?: () => Promise<void>;
 }
 
-export default function UserManager({ onRefreshCounts }: UserManagerProps) {
+export default function UserManager({ initialUsers, initialRoles, onRefreshCounts }: UserManagerProps) {
   const { showSuccess, showError } = useToast();
 
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [, setRoles] = useState<RoleItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<UserItem[]>(initialUsers || []);
+  const [, setRoles] = useState<RoleItem[]>(initialRoles || []);
+  const [loading, setLoading] = useState(!initialUsers || initialUsers.length === 0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const hasInitialized = React.useRef(false);
 
   // Filter & Search & Pagination States
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,8 +66,15 @@ export default function UserManager({ onRefreshCounts }: UserManagerProps) {
   };
 
   useEffect(() => {
+    if (initialUsers && initialUsers.length > 0 && !hasInitialized.current) {
+      setUsers(initialUsers);
+      if (initialRoles) setRoles(initialRoles);
+      setLoading(false);
+      hasInitialized.current = true;
+      return;
+    }
     loadUsers();
-  }, []);
+  }, [initialUsers, initialRoles]);
 
   useEffect(() => {
     setCurrentPage(1);

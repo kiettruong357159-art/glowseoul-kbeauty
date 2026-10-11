@@ -35,23 +35,33 @@ export interface FlashSaleCampaign {
 }
 
 interface FlashSaleManagerProps {
+  initialCampaigns?: FlashSaleCampaign[];
+  initialTotal?: number;
+  storeProducts?: any[];
   canManage?: boolean;
   onRefreshCounts?: () => void;
 }
 
-export default function FlashSaleManager({ canManage = true, onRefreshCounts }: FlashSaleManagerProps) {
+export default function FlashSaleManager({
+  initialCampaigns,
+  initialTotal = 0,
+  storeProducts,
+  canManage = true,
+  onRefreshCounts,
+}: FlashSaleManagerProps) {
   const { showSuccess, showError } = useToast();
 
-  const [campaigns, setCampaigns] = useState<FlashSaleCampaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [, setTotal] = useState(0);
+  const [campaigns, setCampaigns] = useState<FlashSaleCampaign[]>(initialCampaigns || []);
+  const [loading, setLoading] = useState(!initialCampaigns || initialCampaigns.length === 0);
+  const [, setTotal] = useState(initialTotal);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
   // Available store products for selection
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>(storeProducts || []);
+  const hasInitialized = React.useRef(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,12 +111,23 @@ export default function FlashSaleManager({ canManage = true, onRefreshCounts }: 
   }, []);
 
   useEffect(() => {
+    if (initialCampaigns && initialCampaigns.length > 0 && !hasInitialized.current && currentPage === 1) {
+      setCampaigns(initialCampaigns);
+      setTotal(initialTotal);
+      setLoading(false);
+      hasInitialized.current = true;
+      return;
+    }
     loadCampaigns();
-  }, [loadCampaigns]);
+  }, [loadCampaigns, initialCampaigns, initialTotal, currentPage]);
 
   useEffect(() => {
-    loadAllProducts();
-  }, [loadAllProducts]);
+    if (storeProducts && storeProducts.length > 0) {
+      setAllProducts(storeProducts);
+    } else {
+      loadAllProducts();
+    }
+  }, [storeProducts, loadAllProducts]);
 
   const handleOpenCreateModal = () => {
     setEditingCampaign(null);

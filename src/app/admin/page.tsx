@@ -43,6 +43,54 @@ export default function AdminPage() {
     dashboard: true,
   });
 
+  const handleSelectTab = useCallback((tab: AdminTab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => (prev[tab] ? prev : { ...prev, [tab]: true }));
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (tab === 'dashboard') {
+        url.searchParams.delete('tab');
+      } else {
+        url.searchParams.set('tab', tab);
+      }
+      window.history.replaceState(null, '', url.toString());
+      localStorage.setItem('glowseoul_admin_tab', tab);
+    }
+  }, []);
+
+  // Sync tab from URL search param (?tab=...) or localStorage on initial client load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab') as AdminTab | null;
+      const storedTab = localStorage.getItem('glowseoul_admin_tab') as AdminTab | null;
+      const targetTab = tabParam || storedTab;
+
+      const validTabs: AdminTab[] = [
+        'dashboard',
+        'orders',
+        'products',
+        'categories',
+        'brands',
+        'taxonomies',
+        'coupons',
+        'flash-sales',
+        'banners',
+        'users',
+        'reviews',
+      ];
+      if (targetTab && validTabs.includes(targetTab)) {
+        setActiveTab(targetTab);
+        setVisitedTabs((prev) => ({ ...prev, [targetTab]: true }));
+        if (targetTab !== 'dashboard') {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tab', targetTab);
+          window.history.replaceState(null, '', url.toString());
+        }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     setVisitedTabs((prev) => (prev[activeTab] ? prev : { ...prev, [activeTab]: true }));
   }, [activeTab]);
@@ -67,6 +115,12 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [flashSales, setFlashSales] = useState<any[]>([]);
+  const [flashTotal, setFlashTotal] = useState(0);
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [rolesList, setRolesList] = useState<any[]>([]);
 
   // Orders Tab State
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -99,7 +153,7 @@ export default function AdminPage() {
         fetch('/api/admin/brands'),
         fetch('/api/admin/coupons'),
         fetch('/api/admin/users'),
-        fetch('/api/admin/flash-sales?page=1&pageSize=1'),
+        fetch('/api/admin/flash-sales?page=1&pageSize=6'),
         fetch('/api/admin/banners'),
         fetch('/api/admin/reviews'),
       ]);
@@ -117,6 +171,12 @@ export default function AdminPage() {
       setCategories(catData.categories || []);
       setBrands(brandData.brands || []);
       setCoupons(couponData.coupons || []);
+      setBanners(bannerData.banners || []);
+      setReviews(reviewData.reviews || []);
+      setFlashSales(flashData.campaigns || []);
+      setFlashTotal(flashData.total || 0);
+      setUsersList(userData.users || []);
+      setRolesList(userData.roles || []);
 
       setCounts((prev) => ({
         ...prev,
@@ -256,7 +316,7 @@ export default function AdminPage() {
       {/* 1. Left Sidebar Navigation */}
       <AdminSidebar
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleSelectTab}
         counts={counts}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
@@ -287,7 +347,7 @@ export default function AdminPage() {
           <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
             {visitedTabs['dashboard'] && (
               <div style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
-                <DashboardOverview onNavigateTab={setActiveTab} />
+                <DashboardOverview onNavigateTab={handleSelectTab} />
               </div>
             )}
 
@@ -367,25 +427,41 @@ export default function AdminPage() {
 
             {visitedTabs['flash-sales'] && (
               <div id="tab-flash-sales" style={{ display: activeTab === 'flash-sales' ? 'block' : 'none' }}>
-                <FlashSaleManager canManage={canManageProducts} onRefreshCounts={refreshCountsAndTaxonomies} />
+                <FlashSaleManager
+                  initialCampaigns={flashSales}
+                  initialTotal={flashTotal}
+                  storeProducts={products}
+                  canManage={canManageProducts}
+                  onRefreshCounts={refreshCountsAndTaxonomies}
+                />
               </div>
             )}
 
             {visitedTabs['banners'] && (
               <div id="tab-banners" style={{ display: activeTab === 'banners' ? 'block' : 'none' }}>
-                <BannerManager onRefreshCounts={refreshCountsAndTaxonomies} />
+                <BannerManager
+                  banners={banners}
+                  onRefreshCounts={refreshCountsAndTaxonomies}
+                />
               </div>
             )}
 
             {visitedTabs['users'] && (
               <div id="tab-users" style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
-                <UserManager onRefreshCounts={refreshCountsAndTaxonomies} />
+                <UserManager
+                  initialUsers={usersList}
+                  initialRoles={rolesList}
+                  onRefreshCounts={refreshCountsAndTaxonomies}
+                />
               </div>
             )}
 
             {visitedTabs['reviews'] && (
               <div id="tab-reviews" style={{ display: activeTab === 'reviews' ? 'block' : 'none' }}>
-                <ReviewManager onRefreshCounts={refreshCountsAndTaxonomies} />
+                <ReviewManager
+                  initialReviews={reviews}
+                  onRefreshCounts={refreshCountsAndTaxonomies}
+                />
               </div>
             )}
           </div>

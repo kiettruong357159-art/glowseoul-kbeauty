@@ -42,7 +42,7 @@ describe('Database Review and Wishlist Models', () => {
       expect(item.productId).toBe(product.id);
 
       // Clean up
-      await prisma.wishlist.delete({
+      await prisma.wishlist.deleteMany({
         where: { id: item.id },
       });
     }

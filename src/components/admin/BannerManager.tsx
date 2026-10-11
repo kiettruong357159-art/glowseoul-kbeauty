@@ -16,10 +16,11 @@ interface BannerItem {
 }
 
 interface BannerManagerProps {
+  banners?: BannerItem[];
   onRefreshCounts?: () => void;
 }
 
-export default function BannerManager({ onRefreshCounts }: BannerManagerProps = {}) {
+export default function BannerManager({ banners: initialBanners, onRefreshCounts }: BannerManagerProps = {}) {
   const { showSuccess, showError } = useToast();
   const [, setBanners] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,25 +39,30 @@ export default function BannerManager({ onRefreshCounts }: BannerManagerProps = 
   const [savingHero, setSavingHero] = useState(false);
   const [heroSuccess, setHeroSuccess] = useState(false);
 
+  const applyBannersData = (bannerList: BannerItem[]) => {
+    setBanners(bannerList);
+    const promo = bannerList.find((b: BannerItem) => b.type === 'promo_bar');
+    if (promo) {
+      setPromoBarId(promo.id);
+      setPromoText(promo.title);
+    }
+
+    const hero = bannerList.find((b: BannerItem) => b.type === 'hero');
+    if (hero) {
+      setHeroId(hero.id);
+      setHeroBadge(hero.badgeText || '');
+      setHeroTitle(hero.title);
+      setHeroSubtitle(hero.subtitle || '');
+    }
+    setLoading(false);
+  };
+
   const loadBanners = async () => {
     try {
       const res = await fetch('/api/admin/banners');
       const data = await res.json();
       if (data.banners) {
-        setBanners(data.banners);
-        const promo = data.banners.find((b: BannerItem) => b.type === 'promo_bar');
-        if (promo) {
-          setPromoBarId(promo.id);
-          setPromoText(promo.title);
-        }
-
-        const hero = data.banners.find((b: BannerItem) => b.type === 'hero');
-        if (hero) {
-          setHeroId(hero.id);
-          setHeroBadge(hero.badgeText || '');
-          setHeroTitle(hero.title);
-          setHeroSubtitle(hero.subtitle || '');
-        }
+        applyBannersData(data.banners);
       }
     } catch (err) {
       console.error('Failed to load banners:', err);
@@ -66,8 +72,12 @@ export default function BannerManager({ onRefreshCounts }: BannerManagerProps = 
   };
 
   useEffect(() => {
-    loadBanners();
-  }, []);
+    if (initialBanners && initialBanners.length > 0) {
+      applyBannersData(initialBanners);
+    } else {
+      loadBanners();
+    }
+  }, [initialBanners]);
 
   const handleSavePromoBar = async (e: React.FormEvent) => {
     e.preventDefault();

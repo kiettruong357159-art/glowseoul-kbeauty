@@ -141,6 +141,7 @@ export default function AdminSidebar({
         >
           <Link
             href="/admin"
+            prefetch={false}
             style={{
               display: 'flex',
               alignItems: 'center',

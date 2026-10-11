@@ -35,15 +35,16 @@ interface AdminReviewItem {
 }
 
 interface ReviewManagerProps {
+  initialReviews?: AdminReviewItem[];
   onRefreshCounts?: () => void;
 }
 
-export default function ReviewManager({ onRefreshCounts }: ReviewManagerProps = {}) {
+export default function ReviewManager({ initialReviews, onRefreshCounts }: ReviewManagerProps = {}) {
   const { showSuccess, showError } = useToast();
 
-  const [reviews, setReviews] = useState<AdminReviewItem[]>([]);
-  const [, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<AdminReviewItem[]>(initialReviews || []);
+  const [, setTotal] = useState(initialReviews ? initialReviews.length : 0);
+  const [loading, setLoading] = useState(!initialReviews || initialReviews.length === 0);
 
   // Filters & Pagination
   const [search, setSearch] = useState('');
@@ -55,6 +56,7 @@ export default function ReviewManager({ onRefreshCounts }: ReviewManagerProps = 
   // Delete Modal State
   const [deleteTarget, setDeleteTarget] = useState<AdminReviewItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const hasInitialized = React.useRef(false);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -79,8 +81,15 @@ export default function ReviewManager({ onRefreshCounts }: ReviewManagerProps = 
   }, [search, selectedRating, showError]);
 
   useEffect(() => {
+    if (initialReviews && initialReviews.length > 0 && !hasInitialized.current && !search && !selectedRating) {
+      setReviews(initialReviews);
+      setTotal(initialReviews.length);
+      setLoading(false);
+      hasInitialized.current = true;
+      return;
+    }
     fetchReviews();
-  }, [fetchReviews]);
+  }, [fetchReviews, initialReviews, search, selectedRating]);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
