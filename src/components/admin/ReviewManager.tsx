@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import {
   Star,
   Search,
   Trash2,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   MessageSquare,
   Sparkles,
   Filter,
   X
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import CustomSelect from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
+import AdminTableSkeleton from '@/components/ui/skeletons/AdminTableSkeleton';
+import { getProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/image-fallback';
 
 interface AdminReviewItem {
   id: string;
@@ -40,9 +44,12 @@ export default function ReviewManager() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  // Filters & Pagination
   const [search, setSearch] = useState('');
   const [selectedRating, setSelectedRating] = useState<string>('');
+  const [verifiedFilter, setVerifiedFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
 
   // Delete Modal State
   const [deleteTarget, setDeleteTarget] = useState<AdminReviewItem | null>(null);
@@ -98,71 +105,60 @@ export default function ReviewManager() {
     }
   };
 
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedRating, verifiedFilter]);
+
+  const filteredReviews = reviews.filter((rev) => {
+    if (verifiedFilter === 'verified' && !rev.isVerifiedPurchase) return false;
+    if (verifiedFilter === 'unverified' && rev.isVerifiedPurchase) return false;
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredReviews.length / pageSize) || 1;
+  const paginatedReviews = filteredReviews.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  if (loading) {
+    return <AdminTableSkeleton rows={6} />;
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header and Controls */}
+    <div>
+      {/* Control bar: search, rating filter, verified purchase filter */}
       <div
         style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--color-border)',
-          padding: '24px',
-          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexWrap: 'wrap',
+          marginBottom: '20px',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '16px',
-            marginBottom: '20px',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>
-              <Sparkles size={15} /> Kiểm duyệt nội dung
-            </div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', margin: '4px 0 0' }}>
-              Quản Lý Đánh Giá Khách Hàng
-            </h2>
-          </div>
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1, minWidth: '280px' }}>
+          {/* Search Box */}
           <div
             style={{
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              background: 'var(--color-bg-subtle, #fdf8f7)',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '13px',
-              fontWeight: '700',
-              color: 'var(--color-primary)',
+              flex: 1,
+              minWidth: '200px',
+              maxWidth: '360px',
             }}
           >
-            <MessageSquare size={16} />
-            <span>Tổng cộng: <strong>{total}</strong> nhận xét</span>
-          </div>
-        </div>
-
-        {/* Filter bar */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
             <Search
               size={16}
               style={{
                 position: 'absolute',
                 left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--color-text-subtle)',
+                color: 'var(--color-text-muted)',
               }}
             />
             <input
               type="text"
-              placeholder="Tìm theo tên khách, sản phẩm hoặc từ khóa..."
+              placeholder="Tìm theo khách hàng, sản phẩm hoặc từ khóa..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -171,104 +167,165 @@ export default function ReviewManager() {
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-border)',
                 fontSize: '13px',
+                outline: 'none',
+                background: 'var(--color-bg)',
               }}
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Filter size={15} color="var(--color-text-muted)" />
-            <select
-              value={selectedRating}
-              onChange={(e) => setSelectedRating(e.target.value)}
-              style={{
-                padding: '9px 12px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                fontSize: '13px',
-                background: 'white',
-              }}
-            >
-              <option value="">Tất cả số sao</option>
-              <option value="5">5 sao (Xuất sắc)</option>
-              <option value="4">4 sao (Tốt)</option>
-              <option value="3">3 sao (Bình thường)</option>
-              <option value="2">2 sao (Chưa hài lòng)</option>
-              <option value="1">1 sao (Kém)</option>
-            </select>
-          </div>
+          {/* Rating Filter */}
+          <CustomSelect
+            value={selectedRating}
+            onChange={setSelectedRating}
+            placeholder="Tất cả số sao"
+            searchPlaceholder="Tìm số sao..."
+            options={[
+              { value: '', label: 'Tất cả số sao' },
+              { value: '5', label: '⭐⭐⭐⭐⭐ 5 sao (Xuất sắc)' },
+              { value: '4', label: '⭐⭐⭐⭐ 4 sao (Tốt)' },
+              { value: '3', label: '⭐⭐⭐ 3 sao (Bình thường)' },
+              { value: '2', label: '⭐⭐ 2 sao (Chưa hài lòng)' },
+              { value: '1', label: '⭐ 1 sao (Kém)' },
+            ]}
+            style={{ minWidth: '190px' }}
+          />
+
+          {/* Verified Purchase Filter */}
+          <CustomSelect
+            value={verifiedFilter}
+            onChange={setVerifiedFilter}
+            placeholder="Tất cả lượt mua"
+            options={[
+              { value: '', label: 'Tất cả lượt mua' },
+              { value: 'verified', label: '✓ Đã xác thực mua hàng' },
+              { value: 'unverified', label: 'Chưa xác thực đơn mua' },
+            ]}
+            style={{ minWidth: '190px' }}
+          />
+        </div>
+
+        {/* Count badge */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 14px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            fontSize: '13px',
+            fontWeight: '700',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          <MessageSquare size={15} color="var(--color-primary)" />
+          <span>Tổng cộng: <strong style={{ color: 'var(--color-text-main)' }}>{filteredReviews.length}</strong> nhận xét</span>
         </div>
       </div>
 
-      {/* Reviews Table */}
+      {/* Reviews Table - Quản Lý Đánh Giá Khách Hàng */}
       <div
         style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--color-border)',
-          boxShadow: 'var(--shadow-sm)',
-          overflow: 'hidden',
+          borderRadius: 'var(--radius-md)',
+          overflowX: 'auto',
+          background: 'white',
         }}
       >
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-muted)', fontSize: '14px' }}>
-            Đang tải danh sách đánh giá...
-          </div>
-        ) : reviews.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--color-text-muted)' }}>
-            <MessageSquare size={36} style={{ margin: '0 auto 12px', color: '#d1d5db' }} />
-            <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>
-              Không tìm thấy đánh giá nào
-            </div>
-            <div style={{ fontSize: '13px' }}>
-              Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc số sao.
-            </div>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)', width: '220px' }}>
-                    Sản phẩm
-                  </th>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)', width: '160px' }}>
-                    Khách hàng
-                  </th>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)', width: '120px' }}>
-                    Đánh giá
-                  </th>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)' }}>
-                    Nhận xét & Trải nghiệm
-                  </th>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)', width: '110px' }}>
-                    Ngày gửi
-                  </th>
-                  <th style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--color-text-muted)', width: '80px', textAlign: 'center' }}>
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {reviews.map((rev) => (
+        <table aria-label="Quản Lý Đánh Giá Khách Hàng" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+              <th style={{ padding: '12px 16px', fontWeight: '700', width: '260px' }}>Sản phẩm</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700', width: '180px' }}>Khách hàng</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700', width: '120px' }}>Đánh giá</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Nhận xét & Trải nghiệm</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700', width: '110px' }}>Ngày gửi</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700', width: '80px', textAlign: 'right' }}>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredReviews.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '48px 16px', textAlign: 'center' }}>
+                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={32} color="var(--color-text-muted)" />
+                    <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>Không tìm thấy đánh giá nào</div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                      Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc số sao.
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginatedReviews.map((rev) => {
+                const imgUrl = getProductImageUrl(rev.product?.image);
+                return (
                   <tr
                     key={rev.id}
                     style={{
                       borderBottom: '1px solid var(--color-border-subtle)',
-                      transition: 'background 0.15s ease',
+                      transition: 'background 0.15s',
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#fafaf9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
                   >
-                    {/* Product */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
-                      <div style={{ fontWeight: '800', color: 'var(--color-primary)', fontSize: '11px', textTransform: 'uppercase' }}>
-                        {rev.product?.brand || 'K-Beauty'}
-                      </div>
-                      <div style={{ fontWeight: '700', color: 'var(--color-text-main)', marginTop: '2px', lineHeight: '1.4' }}>
-                        {rev.product?.name || 'Sản phẩm'}
+                    {/* Product matching ProductListTable */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div
+                          style={{
+                            width: '46px',
+                            height: '46px',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                            background: 'var(--color-bg)',
+                            border: '1px solid var(--color-border)',
+                          }}
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={rev.product?.name || 'Sản phẩm'}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE;
+                            }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        <div style={{ minWidth: 0, maxWidth: '200px' }}>
+                          <div
+                            style={{
+                              fontWeight: '700',
+                              color: 'var(--color-text-main)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={rev.product?.name}
+                          >
+                            {rev.product?.name || 'Sản phẩm'}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: '700',
+                                color: 'var(--color-primary)',
+                                background: 'var(--color-primary-light)',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {rev.product?.brand || 'K-Beauty'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </td>
 
                     {/* Customer */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
+                    <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>
                         {rev.authorName}
                       </div>
@@ -295,67 +352,78 @@ export default function ReviewManager() {
                     </td>
 
                     {/* Rating */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
+                    <td style={{ padding: '12px 16px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star
                             key={s}
-                            size={13}
+                            size={12}
                             fill={s <= rev.rating ? '#f59e0b' : 'none'}
                             color={s <= rev.rating ? '#f59e0b' : '#d1d5db'}
                           />
                         ))}
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: '700', color: '#b45309' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '800', color: '#b45309' }}>
                         {rev.rating}/5 sao
                       </span>
                     </td>
 
                     {/* Comment */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top' }}>
+                    <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
                       {rev.title && (
-                        <div style={{ fontWeight: '700', color: 'var(--color-text-main)', marginBottom: '3px' }}>
+                        <div style={{ fontWeight: '700', color: 'var(--color-text-main)', marginBottom: '2px' }}>
                           {rev.title}
                         </div>
                       )}
-                      <div style={{ color: 'var(--color-text-muted)', lineHeight: '1.5' }}>
+                      <div style={{ color: 'var(--color-text-muted)', lineHeight: '1.4', maxWidth: '360px' }}>
                         {rev.comment}
                       </div>
                     </td>
 
                     {/* Date */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top', color: 'var(--color-text-subtle)', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', verticalAlign: 'middle', whiteSpace: 'nowrap', color: 'var(--color-text-subtle)' }}>
                       {new Date(rev.createdAt).toLocaleDateString('vi-VN')}
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: '14px 18px', verticalAlign: 'top', textAlign: 'center' }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
                       <button
+                        type="button"
                         onClick={() => setDeleteTarget(rev)}
                         title="Xóa đánh giá này"
                         style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: 'var(--radius-md)',
+                          padding: '6px',
+                          borderRadius: '6px',
                           border: '1px solid #fee2e2',
-                          background: '#fff5f5',
-                          color: '#ef4444',
+                          background: '#fef2f2',
+                          color: 'var(--color-danger)',
+                          cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          cursor: 'pointer',
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <Trash2 size={15} />
+                        <Trash2 size={14} />
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div style={{ marginTop: '20px' }}>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredReviews.length}
+          pageSize={pageSize}
+        />
       </div>
 
       {/* Delete Confirmation Modal */}

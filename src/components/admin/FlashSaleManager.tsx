@@ -1,10 +1,10 @@
-'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Zap, Plus, Pencil, Trash2, Calendar, Clock, Check, X, AlertCircle, ShoppingBag, Eye } from 'lucide-react';
+import { Zap, Plus, Pencil, Trash2, Calendar, Clock, Check, X, AlertCircle, ShoppingBag, Eye, Search } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 import Pagination from '@/components/ui/Pagination';
+import CustomSelect from '@/components/ui/CustomSelect';
+import AdminTableSkeleton from '@/components/ui/skeletons/AdminTableSkeleton';
 import FlashSaleProgressBar from '@/components/ui/FlashSaleProgressBar';
 import CountdownTimer from '@/components/ui/CountdownTimer';
 
@@ -48,6 +48,8 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Available store products for selection
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -301,253 +303,339 @@ export default function FlashSaleManager({ canManage = true }: FlashSaleManagerP
     return { text: 'Đã kết thúc', color: '#64748b', bg: '#f1f5f9' };
   };
 
+  // Reset page when search or statusFilter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  const filteredCampaigns = campaigns.filter((camp) => {
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const matchTitle = camp.title?.toLowerCase().includes(q);
+      const matchDesc = camp.description?.toLowerCase().includes(q);
+      const matchProduct = camp.items?.some((i) => i.product?.name?.toLowerCase().includes(q));
+      if (!matchTitle && !matchDesc && !matchProduct) return false;
+    }
+
+    if (statusFilter) {
+      const now = new Date();
+      const start = new Date(camp.startTime);
+      const end = new Date(camp.endTime);
+      if (statusFilter === 'paused' && camp.isActive) return false;
+      if (statusFilter === 'active' && (!camp.isActive || now < start || now > end)) return false;
+      if (statusFilter === 'upcoming' && (!camp.isActive || now >= start)) return false;
+      if (statusFilter === 'ended' && (!camp.isActive || now <= end)) return false;
+    }
+
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredCampaigns.length / pageSize) || 1;
+  const paginatedCampaigns = filteredCampaigns.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  if (loading) {
+    return <AdminTableSkeleton rows={6} />;
+  }
+
   return (
     <div>
-      {/* Top action bar */}
+      {/* Control bar: search, status filter, add button */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '24px',
+          gap: '12px',
           flexWrap: 'wrap',
-          gap: '16px',
+          marginBottom: '20px',
         }}
       >
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
-            Quản Lý Khuyến Mãi Flash Sale
-          </h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            Lên lịch khung giờ vàng, thiết lập mức giá ưu đãi và giới hạn suất bán tự động
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1, minWidth: '280px' }}>
+          {/* Search Box */}
+          <div
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              flex: 1,
+              minWidth: '200px',
+              maxWidth: '360px',
+            }}
+          >
+            <Search
+              size={16}
+              style={{
+                position: 'absolute',
+                left: '12px',
+                color: 'var(--color-text-muted)',
+              }}
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm kiếm chiến dịch Flash Sale..."
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 36px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                fontSize: '13px',
+                outline: 'none',
+                background: 'var(--color-bg)',
+              }}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <CustomSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="Tất cả trạng thái"
+            searchPlaceholder="Tìm trạng thái..."
+            options={[
+              { value: '', label: 'Tất cả trạng thái' },
+              { value: 'active', label: '⚡ Đang diễn ra' },
+              { value: 'upcoming', label: 'Sắp diễn ra' },
+              { value: 'ended', label: 'Đã kết thúc' },
+              { value: 'paused', label: 'Tạm dừng' },
+            ]}
+            style={{ minWidth: '180px' }}
+          />
         </div>
 
+        {/* Add Campaign Button */}
         {canManage && (
           <button
+            type="button"
             onClick={handleOpenCreateModal}
+            className="btn-primary"
             style={{
-              padding: '10px 18px',
-              backgroundColor: 'var(--color-primary)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 700,
-              fontSize: '0.875rem',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-sm)',
-              transition: 'background-color 0.2s',
+              padding: '10px 18px',
+              fontSize: '13px',
+              borderRadius: 'var(--radius-md)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-primary)')}
           >
             <Plus size={16} />
-            Tạo Chiến Dịch Mới
+            <span>Tạo chiến dịch mới</span>
           </button>
         )}
       </div>
 
-      {/* Campaigns List */}
-      {loading ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-          Đang tải dữ liệu chiến dịch Flash Sale...
-        </div>
-      ) : campaigns.length === 0 ? (
-        <div
-          style={{
-            padding: '60px 20px',
-            textAlign: 'center',
-            backgroundColor: 'var(--color-surface)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-          }}
-        >
-          <Zap size={36} color="var(--color-primary)" style={{ opacity: 0.5, marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: '0 0 6px' }}>Chưa có chiến dịch Flash Sale nào</h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', margin: 0 }}>
-            Tạo chiến dịch giờ vàng đầu tiên để kích hoạt trải nghiệm săn deal kịch tính cho khách hàng.
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {campaigns.map((camp) => {
-            const status = getCampaignStatus(camp);
-            return (
-              <div
-                key={camp.id}
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  padding: '20px',
-                  boxShadow: 'var(--shadow-sm)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    borderBottom: '1px solid var(--color-border-subtle)',
-                    paddingBottom: '16px',
-                    marginBottom: '16px',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+      {/* Campaigns Table */}
+      <div
+        style={{
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-md)',
+          overflowX: 'auto',
+          background: 'white',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Chiến dịch</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Khung giờ vàng</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Sản phẩm Flash Sale</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700' }}>Trạng thái</th>
+              <th style={{ padding: '12px 16px', fontWeight: '700', textAlign: 'right' }}>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredCampaigns.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '48px 16px', textAlign: 'center' }}>
+                  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={32} color="var(--color-text-muted)" />
+                    <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>Chưa có chiến dịch Flash Sale nào</div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                      Tạo chiến dịch giờ vàng đầu tiên để kích hoạt trải nghiệm săn deal kịch tính cho khách hàng
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginatedCampaigns.map((camp) => {
+                const status = getCampaignStatus(camp);
+                return (
+                  <tr
+                    key={camp.id}
+                    style={{
+                      borderBottom: '1px solid var(--color-border-subtle)',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#fafaf9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                  >
+                    {/* Campaign Info */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '8px',
+                            background: '#fef2f2',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--color-primary)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Zap size={18} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>
+                            {camp.title}
+                          </div>
+                          {camp.description && (
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                              {camp.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Time Window */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-text-main)', fontWeight: '600' }}>
+                        <Calendar size={13} color="var(--color-text-muted)" />
+                        <span>{new Date(camp.startTime).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>-</span>
+                        <span>{new Date(camp.endTime).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '3px' }}>
+                        Ngày tạo: {new Date(camp.createdAt || camp.startTime).toLocaleDateString('vi-VN')}
+                      </div>
+                    </td>
+
+                    {/* Products Deal Count & Preview */}
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            background: 'var(--color-bg)',
+                            border: '1px solid var(--color-border)',
+                            fontWeight: '700',
+                            fontSize: '12px',
+                          }}
+                        >
+                          <ShoppingBag size={12} color="var(--color-primary)" />
+                          <span>{camp.items?.length || 0} sản phẩm</span>
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Status Badge */}
+                    <td style={{ padding: '12px 16px' }}>
                       <span
                         style={{
+                          display: 'inline-block',
                           padding: '4px 10px',
                           borderRadius: 'var(--radius-full)',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
+                          fontSize: '11px',
+                          fontWeight: '700',
                           backgroundColor: status.bg,
                           color: status.color,
                         }}
                       >
                         {status.text}
                       </span>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
-                        {camp.title}
-                      </h3>
-                    </div>
+                    </td>
 
-                    {camp.description && (
-                      <p style={{ margin: '0 0 6px', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                        {camp.description}
-                      </p>
-                    )}
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.8rem', color: 'var(--color-text-subtle)' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Calendar size={13} />
-                        Bắt đầu: {new Date(camp.startTime).toLocaleString('vi-VN')}
-                      </span>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={13} />
-                        Kết thúc: {new Date(camp.endTime).toLocaleString('vi-VN')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {canManage && (
-                      <>
-                        <button
-                          onClick={() => handleToggleActive(camp)}
-                          style={{
-                            padding: '6px 12px',
-                            background: camp.isActive ? '#fff0f3' : '#f1f5f9',
-                            color: camp.isActive ? 'var(--color-primary-hover)' : 'var(--color-text-muted)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {camp.isActive ? 'Tạm dừng' : 'Kích hoạt'}
-                        </button>
-                        <button
-                          onClick={() => handleOpenEditModal(camp)}
-                          style={{
-                            padding: '6px 12px',
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            color: 'var(--color-text-main)',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <Pencil size={13} />
-                          Sửa
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCampaign(camp.id, camp.title)}
-                          style={{
-                            padding: '6px 10px',
-                            background: '#fee2e2',
-                            color: '#b91c1c',
-                            border: 'none',
-                            borderRadius: 'var(--radius-sm)',
-                            cursor: 'pointer',
-                          }}
-                          title="Xóa chiến dịch"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Items in Campaign */}
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', color: 'var(--color-text-main)' }}>
-                    Danh sách sản phẩm trong khung giờ ({camp.items.length} sản phẩm):
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                    {camp.items.map((it) => {
-                      const p = it.product;
-                      return (
-                        <div
-                          key={it.id}
-                          style={{
-                            padding: '12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--color-border-subtle)',
-                            background: 'var(--color-bg)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '4px' }}>
-                              {p?.name || 'Sản phẩm không xác định'}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
-                              <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: '0.95rem' }}>
-                                {formatPrice(it.discountPrice)}
-                              </span>
-                              {p?.price && (
-                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', textDecoration: 'line-through' }}>
-                                  {formatPrice(p.price)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <FlashSaleProgressBar soldQuantity={it.soldQuantity} limitQuantity={it.limitQuantity} />
+                    {/* Actions */}
+                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      {canManage ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleActive(camp)}
+                            title={camp.isActive ? 'Tạm dừng chiến dịch' : 'Kích hoạt chiến dịch'}
+                            style={{
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--color-border)',
+                              background: 'white',
+                              color: camp.isActive ? 'var(--color-text-muted)' : '#16a34a',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {camp.isActive ? 'Tắt' : 'Bật'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(camp)}
+                            title="Chỉnh sửa chiến dịch"
+                            style={{
+                              padding: '6px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--color-border)',
+                              background: 'white',
+                              color: 'var(--color-text-main)',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCampaign(camp.id, camp.title)}
+                            title="Xóa chiến dịch"
+                            style={{
+                              padding: '6px',
+                              borderRadius: '6px',
+                              border: '1px solid #fee2e2',
+                              background: '#fef2f2',
+                              color: 'var(--color-danger)',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                      ) : (
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Chỉ xem</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(total / pageSize) || 1}
-            onPageChange={setCurrentPage}
-            totalItems={total}
-            pageSize={pageSize}
-          />
-        </div>
-      )}
+      {/* Pagination */}
+      <div style={{ marginTop: '20px' }}>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredCampaigns.length}
+          pageSize={pageSize}
+        />
+      </div>
 
       {/* Modal Tạo / Sửa Campaign */}
       {isModalOpen && (

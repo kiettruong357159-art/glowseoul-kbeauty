@@ -217,6 +217,8 @@ export default function AdminPage() {
     coupons: 'Mã giảm giá & Voucher',
     banners: 'Banners & Khuyến mãi',
     users: 'Tài khoản & Phân quyền (RBAC)',
+    'flash-sales': 'Flash Sale Giờ Vàng',
+    reviews: 'Đánh giá sản phẩm',
   };
 
   // Prevent flashing admin dashboard content while verifying session or when unauthorized
@@ -253,7 +255,9 @@ export default function AdminPage() {
               {activeTab === 'brands' && 'Quản Lý Thương Hiệu Đối Tác (Brands)'}
               {activeTab === 'taxonomies' && 'Quản Lý Danh Mục & Thương Hiệu'}
               {activeTab === 'coupons' && 'Cấu Hình Mã Giảm Giá & Voucher'}
+              {activeTab === 'flash-sales' && 'Quản Lý Khuyến Mãi Flash Sale (Giờ Vàng)'}
               {activeTab === 'banners' && 'Cấu Hình Banner & Khuyến Mãi'}
+              {activeTab === 'reviews' && 'Quản Lý Đánh Giá & Nhận Xét Khách Hàng'}
               {activeTab === 'users' && 'Quản Lý Tài Khoản & Phân Quyền (RBAC)'}
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
