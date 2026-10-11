@@ -339,8 +339,8 @@ export default function AccountPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {(user?.role === 'ADMIN' || user?.role === 'STAFF') && (
+          {(user?.role === 'ADMIN' || user?.role === 'STAFF') && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Link
                 href="/admin"
                 style={{
@@ -359,27 +359,8 @@ export default function AccountPage() {
                 <Shield size={15} />
                 <span>Trang Quản Trị</span>
               </Link>
-            )}
-            <button
-              onClick={logout}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '9px 18px',
-                borderRadius: 'var(--radius-full)',
-                background: 'white',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-muted)',
-                fontWeight: '600',
-                fontSize: '13px',
-                cursor: 'pointer',
-              }}
-            >
-              <LogOut size={15} />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Portal Layout: Left Tabs & Right Content */}

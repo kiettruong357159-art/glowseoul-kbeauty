@@ -32,7 +32,6 @@ export default function AccountLoading() {
               <SkeletonBox width="220px" height="14px" />
             </div>
           </div>
-          <SkeletonBox width="110px" height="38px" borderRadius="8px" />
         </div>
 
         {/* 2-Column Account Layout: Sidebar (Left 280px) + Content (Right) */}
