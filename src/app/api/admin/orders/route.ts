@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
         items: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: pageSize || 100,
     };
 
     if (page && pageSize) {
       findOptions.skip = (page - 1) * pageSize;
-      findOptions.take = pageSize;
     }
 
     const [orders, total] = await Promise.all([

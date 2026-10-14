@@ -63,6 +63,7 @@ model Order {
   @@index([createdAt])
   @@index([orderStatus, createdAt])
   @@index([paymentStatus, createdAt])
+  @@index([orderStatus, paymentStatus, createdAt])
 }
 
 model OrderItem {
@@ -78,6 +79,8 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+  @@index([orderId, productId])
+  @@index([productId, orderId])
 }
 
 model Category {
