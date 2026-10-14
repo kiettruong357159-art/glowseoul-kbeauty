@@ -94,7 +94,7 @@
   - [x] Nạp đồng thời toàn bộ dữ liệu trang chủ qua `Promise.all` trong `src/app/page.tsx`
   - [x] Kiểm thử 52/52 test suites (156/156 tests passed) và compile Next.js production build thành công
 
-- [ ] **Giai Đoạn 12: Sửa Lỗi TypeScript, Đồng Bộ Database Neon & Triển Khai Vercel Production**
+- [x] **Giai Đoạn 12: Sửa Lỗi TypeScript, Đồng Bộ Database Neon & Triển Khai Vercel Production**
   - [x] Khắc phục lỗi cú pháp và trùng lặp biến `findOptions` trong `src/app/api/admin/orders/route.ts`
   - [x] Khắc phục biến không sử dụng `debouncedSearch` trong `src/app/admin/page.tsx`
   - [x] Khôi phục file icon/favicon và xác minh `check:types`, `check:rules` đạt 100%
@@ -102,8 +102,8 @@
   - [x] Nạp dữ liệu mẫu seed data (`npm run seed`) vào Neon PostgreSQL
   - [x] Chạy kiểm thử toàn bộ test suites (`npm test`) đạt 100% (156/156 passed)
   - [x] Xác minh bản dựng Next.js production build (`npm run build`) cục bộ thành công (30/30 static routes)
-  - [ ] Commit code và push lên GitHub (`origin/main`)
-  - [ ] Giám sát tiến trình triển khai Vercel và nghiệm thu trạng thái READY
+  - [x] Commit code và push lên GitHub (`origin/main`)
+  - [x] Giám sát tiến trình triển khai Vercel và nghiệm thu trạng thái READY (`https://glowseoul-kbeauty.vercel.app`)
 
 
 
